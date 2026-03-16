@@ -40,12 +40,10 @@ SecArch Lab is a **public, open-source library** of interactive security archite
 
 <br>
 
-## ✅ Live Diagrams
+## ✅ Live Site
+🌐  [mizanpranto.github.io/secarch-lab](https://mizanpranto.github.io/secarch-lab/) 
 
-| # | Diagram | Track | Link |
-|:-:|---------|:-----:|:----:|
-| 01 | **Email Security Architecture** | `Track A` | [**View →**](https://mizanpranto.github.io/secarch-lab/email-security.html) |
-| 02 | **Zero Trust Network Architecture** | `Track A` | [**View →**](https://mizanpranto.github.io/secarch-lab/zero-trust.html) |
+
 
 <br>
 
