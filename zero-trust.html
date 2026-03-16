@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero Trust Network Architecture · SecArch Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--bg2:#0B0E17;--bg3:#0F1320;
+  --card:#0D1119;--card2:#111827;--card3:#141D2B;
+  --border:#1A2235;--border2:#1F2D45;--border3:#263554;
+  --blue:#3B82F6;--blue2:#60A5FA;--blue-dim:#1E3A5F;--blue-faint:rgba(59,130,246,.06);
+  --cyan:#22D3EE;--green:#10B981;--green-dim:#064E3B;--green2:#34D399;
+  --amber:#F59E0B;--amber-dim:#78350F;--amber2:#FCD34D;
+  --red:#EF4444;--red-dim:#7F1D1D;--red2:#FCA5A5;
+  --purple:#A78BFA;--purple-dim:#3730A3;--purple2:#C4B5FD;
+  --teal:#2DD4BF;--teal-dim:#134E4A;
+  --orange:#F97316;--pink:#F472B6;
+  --text:#E2E8F0;--text2:#8B9DB5;--text3:#3D5066;--text4:#2A3A50;
+  --display:'Syne',sans-serif;--body:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.6;overflow-x:hidden;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;top:-200px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(167,139,250,.05) 0%,transparent 65%);pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:54px;display:flex;align-items:center;padding:0 32px;gap:16px;background:rgba(7,9,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-back{display:flex;align-items:center;gap:7px;text-decoration:none;font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:.04em;padding:5px 10px;border:1px solid var(--border);border-radius:5px;transition:all .15s;}
+.nav-back:hover{border-color:var(--blue);color:var(--blue);}
+.nav-sep{color:var(--text4);font-size:12px;}
+.nav-crumb{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.04em;}
+.nav-title{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);margin-left:4px;}
+.nav-track{margin-left:auto;font-family:var(--mono);font-size:9.5px;padding:3px 10px;border-radius:3px;background:var(--purple-dim);border:1px solid rgba(167,139,250,.3);color:var(--purple2);letter-spacing:.06em;}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:100px 40px 60px;max-width:1200px;margin:0 auto;}
+.hero-eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.18em;text-transform:uppercase;margin-bottom:20px;}
+.hero-eyebrow-line{width:24px;height:1px;background:var(--border2);}
+.hero-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple);animation:pulse 1.5s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);}}
+.hero-title{font-family:var(--display);font-size:clamp(36px,5vw,62px);font-weight:800;line-height:.95;letter-spacing:-.03em;margin-bottom:14px;}
+.hero-title .hl{-webkit-text-stroke:1px var(--purple);-webkit-text-fill-color:transparent;}
+.hero-desc{font-size:16px;color:var(--text2);line-height:1.8;max-width:700px;font-weight:300;margin-bottom:32px;}
+.hero-principles{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;}
+.principle-pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;padding:5px 13px;border-radius:20px;border:1px solid;letter-spacing:.04em;}
+.pp-purple{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.25);color:var(--purple2);}
+.pp-blue{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.25);color:var(--blue2);}
+.pp-green{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.25);color:var(--green2);}
+.pp-red{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.25);color:var(--red2);}
+.pp-amber{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.25);color:var(--amber2);}
+.hero-stats{display:flex;gap:0;flex-wrap:wrap;}
+.hstat{padding:14px 22px;border:1px solid var(--border);background:var(--card);text-align:center;margin-right:-1px;margin-bottom:-1px;}
+.hstat:first-child{border-radius:8px 0 0 8px;}
+.hstat:last-child{border-radius:0 8px 8px 0;}
+.hstat-n{font-family:var(--display);font-size:26px;font-weight:800;color:var(--text);line-height:1;}
+.hstat-n.pu{color:var(--purple2);}
+.hstat-n.bl{color:var(--blue2);}
+.hstat-n.gr{color:var(--green2);}
+.hstat-n.am{color:var(--amber2);}
+.hstat-n.re{color:var(--red2);}
+.hstat-l{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-top:3px;text-transform:uppercase;}
+
+/* SECTION */
+.sec{position:relative;z-index:1;padding:60px 40px;}
+.sec-inner{max-width:1200px;margin:0 auto;}
+.sec-hd{margin-bottom:32px;}
+.eyebrow{font-family:var(--mono);font-size:9.5px;color:var(--purple);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.eyebrow::before{content:'';width:16px;height:1px;background:var(--purple);}
+.eyebrow.bl{color:var(--blue);}
+.eyebrow.bl::before{background:var(--blue);}
+.eyebrow.gr{color:var(--green);}
+.eyebrow.gr::before{background:var(--green);}
+.eyebrow.am{color:var(--amber);}
+.eyebrow.am::before{background:var(--amber);}
+.eyebrow.re{color:var(--red);}
+.eyebrow.re::before{background:var(--red);}
+.eyebrow.te{color:var(--teal);}
+.eyebrow.te::before{background:var(--teal);}
+.sec-title{font-family:var(--display);font-size:clamp(22px,3vw,34px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
+.sec-title .hl{color:var(--purple2);}
+.sec-title .bl{color:var(--blue2);}
+.sec-title .gr{color:var(--green2);}
+.sec-desc{font-size:14px;color:var(--text2);max-width:660px;margin-top:8px;line-height:1.7;font-weight:300;}
+.divider{border:none;border-top:1px solid var(--border);margin:0;}
+
+/* CTRL BAR */
+.ctrl-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.cbtn{font-family:var(--mono);font-size:11px;padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+.cbtn:hover{border-color:var(--border2);color:var(--text);}
+.cbtn.go{background:var(--purple-dim);border-color:var(--purple);color:var(--purple2);}
+.cbtn.go:hover{background:var(--purple);color:#fff;}
+.cbtn.go-blue{background:var(--blue-dim);border-color:var(--blue);color:var(--blue2);}
+.cbtn.go-blue:hover{background:var(--blue);color:#fff;}
+.cbtn.go-green{background:var(--green-dim);border-color:var(--green);color:var(--green2);}
+.cbtn.go-green:hover{background:var(--green);color:#fff;}
+.cbtn.go-red{background:var(--red-dim);border-color:var(--red);color:var(--red2);}
+.cbtn.go-red:hover{background:var(--red);color:#fff;}
+.cbtn.go-amber{background:var(--amber-dim);border-color:var(--amber);color:var(--amber2);}
+.ctrl-hint{font-family:var(--mono);font-size:10px;color:var(--text4);margin-left:auto;}
+
+/* ARCH ZONES */
+.arch-wrap{display:flex;flex-direction:column;gap:4px;}
+.zone{border-radius:10px;border:1px solid;overflow:hidden;}
+.zone-hd{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.04);}
+.zone-lbl{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;}
+.zone-tag{font-family:var(--mono);font-size:9px;opacity:.45;letter-spacing:.05em;}
+.zone-body{padding:8px 10px;}
+.comp-row{display:flex;gap:6px;flex-wrap:wrap;}
+.comp{flex:1;min-width:90px;border-radius:7px;padding:9px 8px 8px;cursor:pointer;border:1px solid transparent;transition:transform .1s,outline .12s;text-align:center;position:relative;}
+.comp:hover{transform:translateY(-1px);}
+.comp.lit{outline:2px solid var(--purple);outline-offset:2px;}
+.comp.lit-blue{outline:2px solid var(--blue);outline-offset:2px;}
+.comp.lit-green{outline:2px solid var(--green);outline-offset:2px;}
+.comp.lit-red{outline:2px solid var(--red);outline-offset:2px;}
+.comp.lit-amber{outline:2px solid var(--amber);outline-offset:2px;}
+.comp-title{font-size:11px;font-weight:500;line-height:1.3;font-family:var(--body);}
+.comp-sub{font-size:9.5px;opacity:.5;line-height:1.3;margin-top:2px;font-family:var(--mono);}
+/* Zone themes */
+.z-user{background:#0A0C14;border-color:var(--border);}
+.z-user .zone-lbl{color:var(--text3);}
+.comp-user{background:#0F1320;border-color:var(--border);color:var(--text);}
+.comp-user:hover{background:#141D2B;}
+.comp-threat{background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.15);color:var(--text);}
+.comp-threat:hover{background:rgba(239,68,68,.08);}
+.z-cp{background:#0A0720;border-color:rgba(167,139,250,.2);}
+.z-cp .zone-lbl{color:var(--purple);}
+.comp-cp{background:#100E2A;border-color:rgba(167,139,250,.12);color:var(--text);}
+.comp-cp:hover{background:#141230;}
+.comp-cp-core{background:#1F1A4A;border-color:var(--purple);color:var(--text);}
+.comp-cp-core:hover{background:#252060;}
+.z-pep{background:#071520;border-color:rgba(34,211,238,.15);}
+.z-pep .zone-lbl{color:var(--teal);}
+.comp-pep{background:#0C1E28;border-color:rgba(34,211,238,.1);color:var(--text);}
+.comp-pep:hover{background:#102230;}
+.comp-pep-core{background:#0E2830;border-color:var(--teal);color:var(--text);}
+.comp-pep-core:hover{background:#123240;}
+.z-res{background:#0A0E18;border-color:rgba(245,158,11,.15);}
+.z-res .zone-lbl{color:var(--amber);}
+.comp-res{background:#130F08;border-color:rgba(245,158,11,.1);color:var(--text);}
+.comp-res:hover{background:#181306;}
+.z-mon{background:#0A1208;border-color:rgba(16,185,129,.15);}
+.z-mon .zone-lbl{color:var(--green);}
+.comp-mon{background:#0D1A0A;border-color:rgba(16,185,129,.1);color:var(--text);}
+.comp-mon:hover{background:#101E0D;}
+/* Verdict row */
+.verdict-row{display:flex;gap:6px;}
+.v-deny{background:#1A0A0A;border-color:rgba(239,68,68,.25);color:var(--text);border-radius:7px;flex:1;padding:9px 8px;cursor:pointer;border:1px solid;transition:all .12s;text-align:center;}
+.v-deny:hover{border-color:var(--red);transform:translateY(-1px);}
+.v-stepup{background:#1A120A;border-color:rgba(245,158,11,.25);color:var(--text);border-radius:7px;flex:1;padding:9px 8px;cursor:pointer;border:1px solid;transition:all .12s;text-align:center;}
+.v-stepup:hover{border-color:var(--amber);transform:translateY(-1px);}
+.v-grant{background:#0A1A0F;border-color:rgba(16,185,129,.25);color:var(--text);border-radius:7px;flex:1;padding:9px 8px;cursor:pointer;border:1px solid;transition:all .12s;text-align:center;}
+.v-grant:hover{border-color:var(--green);transform:translateY(-1px);}
+/* Arrows */
+.zone-arr{text-align:center;padding:3px 0;display:flex;align-items:center;justify-content:center;gap:20px;font-family:var(--mono);font-size:10.5px;color:var(--text4);}
+.feedback-row{text-align:center;padding:5px 0;border-top:1px dashed var(--border);margin-top:4px;font-family:var(--mono);font-size:9.5px;color:var(--text4);letter-spacing:.06em;}
+
+/* DETAIL PANEL */
+.detail-panel{border:1px solid var(--border2);border-radius:12px;background:var(--card);padding:20px 22px;margin-top:14px;min-height:100px;}
+.dp-zone{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.dp-title{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.01em;margin-bottom:5px;}
+.dp-sub{font-family:var(--mono);font-size:10.5px;color:var(--text3);margin-bottom:12px;}
+.dp-desc{font-size:13.5px;color:var(--text2);line-height:1.75;font-weight:300;margin-bottom:14px;}
+.dp-points{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.dp-points li{display:flex;gap:8px;font-size:12.5px;color:var(--text2);line-height:1.5;}
+.dp-points li::before{content:'▸';color:var(--purple);opacity:.7;flex-shrink:0;margin-top:2px;}
+.dp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px;}
+.dp-tag{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);color:var(--text3);}
+.dp-placeholder{color:var(--text3);font-family:var(--mono);font-size:11.5px;text-align:center;padding:24px;}
+
+/* PRINCIPLES CARDS */
+.principles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.prin-card{border-radius:12px;border:1px solid var(--border);background:var(--card);padding:20px;position:relative;overflow:hidden;}
+.prin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.pc-p::before{background:var(--purple);}
+.pc-b::before{background:var(--blue);}
+.pc-g::before{background:var(--green);}
+.pc-a::before{background:var(--amber);}
+.pc-r::before{background:var(--red);}
+.prin-num{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+.pc-p .prin-num{color:var(--purple);}
+.pc-b .prin-num{color:var(--blue2);}
+.pc-g .prin-num{color:var(--green);}
+.pc-a .prin-num{color:var(--amber);}
+.pc-r .prin-num{color:var(--red2);}
+.prin-title{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em;}
+.prin-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;}
+.prin-tag{display:inline-flex;margin-top:10px;font-family:var(--mono);font-size:9.5px;padding:2px 9px;border-radius:10px;border:1px solid;}
+.pc-p .prin-tag{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.2);color:var(--purple2);}
+.pc-b .prin-tag{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2);color:var(--blue2);}
+.pc-g .prin-tag{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.2);color:var(--green2);}
+.pc-a .prin-tag{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2);color:var(--amber2);}
+.pc-r .prin-tag{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2);color:var(--red2);}
+
+/* PIPELINE */
+.pipeline{display:flex;flex-direction:column;gap:0;}
+.pipe-step{display:flex;gap:16px;align-items:stretch;}
+.ps-left{display:flex;flex-direction:column;align-items:center;width:48px;flex-shrink:0;}
+.ps-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:700;flex-shrink:0;border:1px solid;z-index:1;}
+.ps-line{width:1px;flex:1;margin:2px 0;min-height:16px;}
+.ps-box{flex:1;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:6px;transition:all .15s;background:var(--card);}
+.ps-box:hover{background:var(--card2);border-color:var(--border2);}
+.ps-title{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:3px;}
+.ps-sub{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:.03em;}
+.ps-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;}
+.ps-output{margin-top:8px;display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:3px;border:1px solid;}
+.step-pu .ps-num{background:rgba(167,139,250,.1);border-color:var(--purple);color:var(--purple2);}
+.step-pu .ps-line{background:linear-gradient(var(--purple),rgba(167,139,250,.1));}
+.step-pu .ps-title{color:var(--purple2);}
+.step-pu .ps-output{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.2);color:var(--purple2);}
+.step-bl .ps-num{background:rgba(59,130,246,.1);border-color:var(--blue);color:var(--blue2);}
+.step-bl .ps-line{background:linear-gradient(var(--blue),rgba(59,130,246,.1));}
+.step-bl .ps-title{color:var(--blue2);}
+.step-bl .ps-output{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2);color:var(--blue2);}
+.step-gr .ps-num{background:rgba(16,185,129,.1);border-color:var(--green);color:var(--green);}
+.step-gr .ps-line{background:linear-gradient(var(--green),rgba(16,185,129,.1));}
+.step-gr .ps-title{color:var(--green2);}
+.step-gr .ps-output{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.2);color:var(--green2);}
+.step-am .ps-num{background:rgba(245,158,11,.1);border-color:var(--amber);color:var(--amber);}
+.step-am .ps-line{background:linear-gradient(var(--amber),rgba(245,158,11,.1));}
+.step-am .ps-title{color:var(--amber2);}
+.step-am .ps-output{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2);color:var(--amber2);}
+.step-te .ps-num{background:rgba(45,212,191,.1);border-color:var(--teal);color:var(--teal);}
+.step-te .ps-line{background:linear-gradient(var(--teal),rgba(45,212,191,.1));}
+.step-te .ps-title{color:var(--teal);}
+.step-te .ps-output{background:rgba(45,212,191,.06);border-color:rgba(45,212,191,.2);color:var(--teal);}
+.step-re .ps-num{background:rgba(239,68,68,.1);border-color:var(--red);color:var(--red);}
+.step-re .ps-line{background:linear-gradient(var(--red),rgba(239,68,68,.1));}
+.step-re .ps-title{color:var(--red2);}
+.step-re .ps-output{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2);color:var(--red2);}
+
+/* COMPARISON TABLE */
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.cmp-table th{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;background:var(--card);}
+.cmp-table td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;font-size:12.5px;color:var(--text2);}
+.cmp-table tr:last-child td{border-bottom:none;}
+.cmp-table tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+.cmp-table td:first-child{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;}
+.ctag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:3px;margin:1px 2px;border:1px solid;}
+.ctag-r{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red2);}
+.ctag-g{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--green2);}
+.ctag-a{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber2);}
+.ctag-b{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.2);color:var(--blue2);}
+.ctag-p{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.2);color:var(--purple2);}
+
+/* IR SCENARIOS */
+.scenario-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.stab{flex:1;padding:12px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;border-right:1px solid var(--border);}
+.stab:last-child{border-right:none;}
+.stab:hover{background:var(--card);color:var(--text);}
+.stab.on{background:var(--purple-dim);color:var(--purple2);border-bottom:2px solid var(--purple);}
+.scenario-body{display:none;}
+.scenario-body.show{display:block;}
+.scenario-desc{font-size:14px;color:var(--text2);line-height:1.75;font-weight:300;margin-bottom:20px;padding:14px 16px;border-left:2px solid var(--border2);background:var(--card);}
+.scenario-desc strong{color:var(--text);font-weight:500;}
+.ir-steps{display:flex;flex-direction:column;gap:8px;}
+.ir-step{display:flex;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;transition:all .15s;}
+.ir-step:hover{border-color:var(--border2);}
+.ir-step.active{border-color:var(--purple);background:rgba(167,139,250,.04);}
+.ir-step-n{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;flex-shrink:0;background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple2);}
+.ir-step-n.done{background:var(--green-dim);border-color:var(--green);color:var(--green2);}
+.ir-step-body{flex:1;}
+.ir-step-title{font-size:13px;font-weight:500;margin-bottom:3px;font-family:var(--display);}
+.ir-step-action{font-size:12px;color:var(--text2);line-height:1.55;font-weight:300;}
+.ir-step-why{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:5px;padding:4px 8px;border-radius:3px;border:1px solid var(--border);display:inline-block;}
+
+/* IDENTITY DEEP DIVE */
+.identity-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.id-card{border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden;}
+.id-hd{padding:14px 16px;border-bottom:1px solid var(--border);}
+.id-title{font-family:var(--display);font-size:15px;font-weight:600;margin-bottom:3px;}
+.id-sub{font-family:var(--mono);font-size:9.5px;color:var(--text3);}
+.id-body{padding:14px 16px;}
+.id-item{display:flex;gap:8px;margin-bottom:8px;font-size:12.5px;color:var(--text2);line-height:1.5;align-items:flex-start;}
+.id-item:last-child{margin-bottom:0;}
+.id-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+
+/* VENDOR GRID */
+.vendor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.vendor-card{border:1px solid var(--border);border-radius:9px;padding:14px;background:var(--card);transition:all .15s;}
+.vendor-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.vendor-rank{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px;}
+.vendor-name{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:3px;}
+.vendor-product{font-size:11px;color:var(--text2);margin-bottom:8px;font-family:var(--mono);}
+.vendor-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.vtag{font-family:var(--mono);font-size:8.5px;padding:1px 6px;border-radius:3px;border:1px solid var(--border2);color:var(--text3);}
+
+/* QUICK REF */
+.qref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.qref-card{border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden;}
+.qref-hd{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.qref-hd-dot{width:7px;height:7px;border-radius:50%;}
+.qref-hd-title{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;}
+.qref-body{padding:10px 14px;}
+.qref-item{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px;gap:8px;}
+.qref-item:last-child{border-bottom:none;}
+.qref-key{color:var(--text2);flex-shrink:0;}
+.qref-val{font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;}
+
+/* FOOTER */
+footer{position:relative;z-index:1;padding:32px 40px;border-top:1px solid var(--border);background:var(--bg2);}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-back{display:flex;align-items:center;gap:7px;text-decoration:none;font-family:var(--mono);font-size:11px;color:var(--text2);padding:7px 14px;border:1px solid var(--border);border-radius:5px;transition:all .15s;}
+.footer-back:hover{border-color:var(--purple);color:var(--purple2);}
+.footer-meta{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .4s ease,transform .4s ease;}
+.rv.in{opacity:1;transform:translateY(0);}
+
+/* RESPONSIVE */
+@media(max-width:800px){
+  nav{padding:0 16px;}.hero{padding:90px 16px 40px;}.sec{padding:40px 16px;}
+  .identity-grid{grid-template-columns:1fr;}
+  .hstat{flex:1;min-width:90px;border-radius:0;}footer{padding:24px 16px;}
+  .ctrl-hint{display:none;}
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.hero>*{animation:fadeIn .5s ease both;}
+.hero-eyebrow{animation-delay:.05s;}.hero-title{animation-delay:.1s;}.hero-desc{animation-delay:.14s;}.hero-principles{animation-delay:.18s;}.hero-stats{animation-delay:.22s;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-back">← Library</a>
+  <span class="nav-sep">/</span>
+  <span class="nav-crumb">Track A</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-title">Zero Trust Network Architecture</span>
+  <div class="nav-track">TRACK A · 02</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <div class="hero-eyebrow-line"></div>
+    <div class="hero-eyebrow-dot"></div>
+    Security Architecture · Track A
+    <div class="hero-eyebrow-line"></div>
+  </div>
+  <h1 class="hero-title">Zero Trust<br><span class="hl">Network Architecture</span></h1>
+  <p class="hero-desc">
+    A complete interactive reference for Zero Trust — the security model built on one principle:
+    <em>never trust, always verify</em>. Covers all five security zones, the identity and device trust
+    control plane, policy enforcement points, protected resources, and continuous monitoring.
+    Every component is click-to-explore with deep explanations.
+  </p>
+  <div class="hero-principles">
+    <span class="principle-pill pp-purple">Never trust, always verify</span>
+    <span class="principle-pill pp-blue">Least privilege access</span>
+    <span class="principle-pill pp-red">Assume breach</span>
+    <span class="principle-pill pp-green">Continuous validation</span>
+    <span class="principle-pill pp-amber">Explicit verification</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-n pu">5</div><div class="hstat-l">Security zones</div></div>
+    <div class="hstat"><div class="hstat-n bl">35+</div><div class="hstat-l">Components</div></div>
+    <div class="hstat"><div class="hstat-n gr">3</div><div class="hstat-l">Auth protocols</div></div>
+    <div class="hstat"><div class="hstat-n am">7</div><div class="hstat-l">Enforcement points</div></div>
+    <div class="hstat"><div class="hstat-n re">2</div><div class="hstat-l">IR scenarios</div></div>
+    <div class="hstat"><div class="hstat-n pu">8</div><div class="hstat-l">Top vendors</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- SECTION 1: FIVE PRINCIPLES -->
+<section class="sec" id="principles">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 1</div>
+      <h2 class="sec-title">The Five <span class="hl">Zero Trust Principles</span></h2>
+      <p class="sec-desc">Zero Trust is not a product — it is a security philosophy and architectural strategy. These five principles form the conceptual foundation that every component in the architecture enforces.</p>
+    </div>
+    <div class="principles-grid rv" id="principlesGrid"></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 2: ARCHITECTURE -->
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="architecture">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow bl">Section 2</div>
+      <h2 class="sec-title">Full <span class="bl">Architecture Diagram</span></h2>
+      <p class="sec-desc">Five security zones from users and devices through the identity control plane, policy enforcement points, protected resources, and continuous monitoring. Click any component for a deep explanation, or use the trace buttons to animate a request flow through the architecture.</p>
+    </div>
+
+    <div class="ctrl-bar rv">
+      <button class="cbtn go-blue" onclick="traceFlow('access')">▶ Trace access request</button>
+      <button class="cbtn go-green" onclick="traceFlow('granted')">▶ Trace granted session</button>
+      <button class="cbtn go-red" onclick="traceFlow('deny')">▶ Trace denied request</button>
+      <button class="cbtn go-amber" onclick="traceFlow('compromise')">▶ Simulate compromised account</button>
+      <button class="cbtn" onclick="resetArch()">↺ Reset</button>
+      <span class="ctrl-hint">Click any component for details</span>
+    </div>
+
+    <div class="arch-wrap rv">
+
+      <!-- Zone 1: Users & Devices -->
+      <div class="zone z-user" id="zone-user">
+        <div class="zone-hd"><span class="zone-lbl">Zone 1 — Users &amp; Devices</span><span class="zone-tag">All identities untrusted by default · Network location grants zero privilege</span></div>
+        <div class="zone-body" style="display:flex;flex-direction:column;gap:6px;">
+          <div class="comp-row">
+            <div class="comp comp-user" id="c-remote" onclick="show('remote')"><div class="comp-title">Remote workers</div><div class="comp-sub">Home / public network</div></div>
+            <div class="comp comp-user" id="c-onprem" onclick="show('onprem')"><div class="comp-title">On-premises users</div><div class="comp-sub">Corporate LAN — still untrusted</div></div>
+            <div class="comp comp-user" id="c-partner" onclick="show('partner')"><div class="comp-title">Partners &amp; vendors</div><div class="comp-sub">Third-party identities</div></div>
+            <div class="comp comp-user" id="c-svcacc" onclick="show('svcacc')"><div class="comp-title">Service accounts</div><div class="comp-sub">Workload-to-workload</div></div>
+          </div>
+          <div class="comp-row">
+            <div class="comp comp-user" id="c-managed" onclick="show('managed')"><div class="comp-title">Managed devices</div><div class="comp-sub">MDM / corporate-enrolled</div></div>
+            <div class="comp comp-threat" id="c-byod" onclick="show('byod')"><div class="comp-title">Unmanaged / BYOD</div><div class="comp-sub">Personal · restricted access</div></div>
+            <div class="comp comp-threat" id="c-iot" onclick="show('iot')"><div class="comp-title">IoT / OT devices</div><div class="comp-sub">Non-user endpoints</div></div>
+            <div class="comp comp-user" id="c-cloudwl" onclick="show('cloudwl')"><div class="comp-title">Cloud workloads</div><div class="comp-sub">VMs · containers · functions</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arr">↓ &nbsp;Access request — no implicit trust granted by network location or previous session</div>
+
+      <!-- Zone 2: Control Plane -->
+      <div class="zone z-cp" id="zone-cp">
+        <div class="zone-hd"><span class="zone-lbl">Zone 2 — Zero Trust Control Plane</span><span class="zone-tag">Identity · Device posture · Context · Risk · Policy</span></div>
+        <div class="zone-body" style="display:flex;flex-direction:column;gap:6px;">
+          <div class="comp-row">
+            <div class="comp comp-cp" id="c-idp" onclick="show('idp')"><div class="comp-title">Identity provider (IdP)</div><div class="comp-sub">Okta / Entra ID / Ping</div></div>
+            <div class="comp comp-cp" id="c-mfa" onclick="show('mfa')"><div class="comp-title">MFA / Passwordless</div><div class="comp-sub">FIDO2 · TOTP · Push</div></div>
+            <div class="comp comp-cp" id="c-mdm" onclick="show('mdm')"><div class="comp-title">Device trust / MDM</div><div class="comp-sub">Intune · Jamf · CrowdStrike</div></div>
+            <div class="comp comp-cp" id="c-pam" onclick="show('pam')"><div class="comp-title">PAM</div><div class="comp-sub">Privileged access management</div></div>
+          </div>
+          <div class="comp-row">
+            <div class="comp comp-cp" id="c-risk" onclick="show('risk')" style="flex:2;"><div class="comp-title">Risk &amp; context engine</div><div class="comp-sub">Location · time · behaviour · threat signals</div></div>
+            <div class="comp comp-cp-core" id="c-pe" onclick="show('pe')" style="flex:2;"><div class="comp-title">Policy engine (PE)</div><div class="comp-sub">Evaluates all signals → trust decision</div></div>
+            <div class="comp comp-cp-core" id="c-pa" onclick="show('pa')" style="flex:2;"><div class="comp-title">Policy administrator (PA)</div><div class="comp-sub">Issues / revokes access tokens</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verdict -->
+      <div class="zone z-user" id="zone-verdict" style="background:transparent;border-color:transparent;">
+        <div class="zone-hd" style="background:transparent;border:none;padding:4px 0;"><span class="zone-lbl">Policy engine issues one of three decisions</span></div>
+        <div class="zone-body" style="padding:0;">
+          <div class="verdict-row">
+            <div class="v-deny" id="c-deny" onclick="show('deny')"><div class="comp-title" style="color:var(--red2);">Access denied</div><div class="comp-sub" style="color:var(--text3);">Request blocked at control plane</div></div>
+            <div class="v-stepup" id="c-stepup" onclick="show('stepup')"><div class="comp-title" style="color:var(--amber2);">Step-up auth required</div><div class="comp-sub" style="color:var(--text3);">Additional factor triggered</div></div>
+            <div class="v-grant" id="c-grant" onclick="show('grant')"><div class="comp-title" style="color:var(--green2);">Access granted</div><div class="comp-sub" style="color:var(--text3);">Scoped, time-limited token issued</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arr">↓ &nbsp;Token presented to enforcement point — no token, no access</div>
+
+      <!-- Zone 3: PEP -->
+      <div class="zone z-pep" id="zone-pep">
+        <div class="zone-hd"><span class="zone-lbl">Zone 3 — Policy Enforcement Points</span><span class="zone-tag">Enforce control plane decisions at every access path — network is never trusted directly</span></div>
+        <div class="zone-body" style="display:flex;flex-direction:column;gap:6px;">
+          <div class="comp-row">
+            <div class="comp comp-pep" id="c-ztna" onclick="show('ztna')"><div class="comp-title">ZTNA proxy</div><div class="comp-sub">App-level access · no VPN</div></div>
+            <div class="comp comp-pep" id="c-swg" onclick="show('swg')"><div class="comp-title">Secure web gateway</div><div class="comp-sub">Web traffic inspection</div></div>
+            <div class="comp comp-pep" id="c-casb" onclick="show('casb')"><div class="comp-title">CASB</div><div class="comp-sub">Cloud app control</div></div>
+            <div class="comp comp-pep" id="c-ngfw" onclick="show('ngfw')"><div class="comp-title">Next-gen firewall</div><div class="comp-sub">L7 inspection &amp; policy</div></div>
+          </div>
+          <div class="comp-row">
+            <div class="comp comp-pep-core" id="c-microseg" onclick="show('microseg')" style="flex:2;"><div class="comp-title">Microsegmentation</div><div class="comp-sub">East-west lateral movement prevention</div></div>
+            <div class="comp comp-pep" id="c-apigw" onclick="show('apigw')"><div class="comp-title">API gateway</div><div class="comp-sub">OAuth 2.0 / token validation</div></div>
+            <div class="comp comp-pep" id="c-dlp" onclick="show('dlp')"><div class="comp-title">Inline DLP</div><div class="comp-sub">Data exfil prevention</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arr">↓ &nbsp;Authorised, inspected, time-limited session established to specific resource only</div>
+
+      <!-- Zone 4: Resources -->
+      <div class="zone z-res" id="zone-res">
+        <div class="zone-hd"><span class="zone-lbl">Zone 4 — Protected Resources</span><span class="zone-tag">Never directly reachable — only accessible via enforcement points with valid token</span></div>
+        <div class="zone-body">
+          <div class="comp-row">
+            <div class="comp comp-res" id="c-saas" onclick="show('saas')"><div class="comp-title">SaaS applications</div><div class="comp-sub">M365 · Salesforce · Slack</div></div>
+            <div class="comp comp-res" id="c-privapp" onclick="show('privapp')"><div class="comp-title">Private / on-prem apps</div><div class="comp-sub">Legacy internal systems</div></div>
+            <div class="comp comp-res" id="c-cloud" onclick="show('cloud')"><div class="comp-title">Cloud infrastructure</div><div class="comp-sub">AWS · Azure · GCP</div></div>
+            <div class="comp comp-res" id="c-data" onclick="show('data')"><div class="comp-title">Data stores</div><div class="comp-sub">Classified &amp; regulated data</div></div>
+            <div class="comp comp-res" id="c-devops" onclick="show('devops')"><div class="comp-title">DevOps / CI-CD</div><div class="comp-sub">Source code &amp; pipelines</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arr">↓ &nbsp;All activity events, telemetry, and anomaly signals streamed continuously</div>
+
+      <!-- Zone 5: Monitoring -->
+      <div class="zone z-mon" id="zone-mon">
+        <div class="zone-hd"><span class="zone-lbl">Zone 5 — Continuous Monitoring &amp; Feedback Loop</span><span class="zone-tag">Signals feed back to the Policy Engine — access can be revoked mid-session on behaviour change</span></div>
+        <div class="zone-body">
+          <div class="comp-row">
+            <div class="comp comp-mon" id="c-siem" onclick="show('siem')"><div class="comp-title">SIEM / XDR</div><div class="comp-sub">Correlation &amp; detection</div></div>
+            <div class="comp comp-mon" id="c-ueba" onclick="show('ueba')"><div class="comp-title">UEBA</div><div class="comp-sub">Behavioural baselining</div></div>
+            <div class="comp comp-mon" id="c-soar" onclick="show('soar')"><div class="comp-title">SOAR</div><div class="comp-sub">Automated response</div></div>
+            <div class="comp comp-mon" id="c-ti" onclick="show('ti')"><div class="comp-title">Threat intelligence</div><div class="comp-sub">IOC feeds &amp; enrichment</div></div>
+            <div class="comp comp-mon" id="c-soc" onclick="show('soc')"><div class="comp-title">SOC team</div><div class="comp-sub">Human-in-the-loop</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback-row">↺ &nbsp;Monitoring signals continuously update Policy Engine trust scores — a compromised account triggers immediate token revocation, not just at next login</div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel" id="detail">
+      <div class="dp-placeholder">Click any component above to explore it in depth</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 3: ACCESS REQUEST PIPELINE -->
+<section class="sec" id="pipeline">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow am">Section 3</div>
+      <h2 class="sec-title">Access Request <span class="hl" style="color:var(--amber2);">Processing Pipeline</span></h2>
+      <p class="sec-desc">Every access request — from a remote user opening a browser tab to a microservice calling an API — passes through this evaluation pipeline before any resource is reached. No step can be bypassed, and any stage can independently deny the request.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 40px;" class="rv">
+      <div class="pipeline" id="pipeL"></div>
+      <div class="pipeline" id="pipeR"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 4: IDENTITY & DEVICE TRUST -->
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="identity">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 4</div>
+      <h2 class="sec-title">Identity &amp; Device Trust — <span class="hl">The Control Plane</span></h2>
+      <p class="sec-desc">Identity is the new perimeter in Zero Trust. Every access request must be backed by a verifiable identity claim from a trusted IdP and a device posture assessment from MDM. Both must pass before the Policy Engine evaluates the request.</p>
+    </div>
+    <div class="identity-grid rv">
+      <div class="id-card">
+        <div class="id-hd" style="background:rgba(167,139,250,.04);border-bottom-color:rgba(167,139,250,.15);">
+          <div class="id-title" style="color:var(--purple2);">Identity verification layers</div>
+          <div class="id-sub">What the IdP and MFA system evaluate</div>
+        </div>
+        <div class="id-body">
+          <div class="id-item"><div class="id-dot" style="background:var(--purple);"></div><div><strong style="color:var(--text);">Primary credential:</strong> Password, passkey, or FIDO2 hardware token. Passwordless (FIDO2/WebAuthn) is the strongest option — credentials are device-bound and cannot be phished or replayed by an attacker.</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--purple);"></div><div><strong style="color:var(--text);">Multi-factor authentication:</strong> FIDO2 (phishing-resistant, highest tier), TOTP authenticator app (strong, widely deployed), SMS OTP (weakest — susceptible to SIM swap, use only as fallback).</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--purple);"></div><div><strong style="color:var(--text);">Conditional access signals:</strong> Sign-in location (geolocation, IP reputation), time of day vs. normal login hours, new device flag, impossible travel detection (London → Singapore in 30 minutes).</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--purple);"></div><div><strong style="color:var(--text);">Federation protocols:</strong> SAML 2.0 for enterprise SSO, OIDC/OAuth 2.0 for modern app authentication, SCIM for automated user provisioning across connected SaaS platforms.</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--purple);"></div><div><strong style="color:var(--text);">Privileged identity:</strong> PAM enforces just-in-time elevation — admin rights granted for a defined time window then auto-revoked. No standing admin access. Full session recording. Break-glass procedure for emergencies.</div></div>
+        </div>
+      </div>
+      <div class="id-card">
+        <div class="id-hd" style="background:rgba(59,130,246,.04);border-bottom-color:rgba(59,130,246,.15);">
+          <div class="id-title" style="color:var(--blue2);">Device posture assessment</div>
+          <div class="id-sub">What MDM and device trust evaluate before granting access</div>
+        </div>
+        <div class="id-body">
+          <div class="id-item"><div class="id-dot" style="background:var(--blue);"></div><div><strong style="color:var(--text);">OS patch level:</strong> Device must have applied security patches within the SLA window (e.g. critical patches within 24h). Unpatched devices are quarantined to a remediation VLAN — read-only access only.</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--blue);"></div><div><strong style="color:var(--text);">Disk encryption:</strong> BitLocker (Windows), FileVault (macOS), or equivalent must be enabled and actively encrypting. Recovery keys escrowed to MDM. Unencrypted devices denied all corporate access.</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--blue);"></div><div><strong style="color:var(--text);">EDR agent health:</strong> Endpoint Detection and Response agent must be installed, running, and connected to the management console. Tampered or disabled EDR agent = non-compliant device.</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--blue);"></div><div><strong style="color:var(--text);">Device certificate:</strong> Corporate PKI issues a device certificate that cryptographically proves this specific device is corporate-enrolled. Certificate-based device authentication replaces IP-based trust entirely.</div></div>
+          <div class="id-item"><div class="id-dot" style="background:var(--blue);"></div><div><strong style="color:var(--text);">BYOD / unmanaged:</strong> Devices without MDM enrolment are assigned the "unmanaged" posture tier — restricted to browser-only access via Remote Browser Isolation. No data download, no native app access, no sync.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MFA comparison table -->
+    <div class="rv" style="margin-top:20px;">
+      <div class="eyebrow" style="margin-bottom:10px;">MFA strength comparison</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+        <table class="cmp-table">
+          <thead><tr><th>MFA Method</th><th>Phishing resistant?</th><th>SIM-swap resistant?</th><th>Usability</th><th>ZT recommendation</th></tr></thead>
+          <tbody>
+            <tr><td>FIDO2 / WebAuthn hardware key</td><td><span class="ctag ctag-g">Yes</span></td><td><span class="ctag ctag-g">Yes</span></td><td>Excellent with biometric</td><td><span class="ctag ctag-g">Tier 1 — use for admin and high-value access</span></td></tr>
+            <tr><td>Passkey (device-bound)</td><td><span class="ctag ctag-g">Yes</span></td><td><span class="ctag ctag-g">Yes</span></td><td>Excellent — biometric native</td><td><span class="ctag ctag-g">Tier 1 — recommended for all user accounts</span></td></tr>
+            <tr><td>TOTP authenticator app</td><td><span class="ctag ctag-a">Partial</span></td><td><span class="ctag ctag-g">Yes</span></td><td>Good — 30s code</td><td><span class="ctag ctag-b">Tier 2 — acceptable for most users</span></td></tr>
+            <tr><td>Push notification (with number match)</td><td><span class="ctag ctag-a">Partial</span></td><td><span class="ctag ctag-g">Yes</span></td><td>Very good — one tap</td><td><span class="ctag ctag-b">Tier 2 — require number matching to prevent fatigue attacks</span></td></tr>
+            <tr><td>Push notification (no number match)</td><td><span class="ctag ctag-r">No</span></td><td><span class="ctag ctag-g">Yes</span></td><td>Good</td><td><span class="ctag ctag-r">Weak — vulnerable to MFA fatigue attacks, avoid</span></td></tr>
+            <tr><td>SMS OTP</td><td><span class="ctag ctag-r">No</span></td><td><span class="ctag ctag-r">No</span></td><td>Universal</td><td><span class="ctag ctag-r">Tier 3 — last resort fallback only, never primary factor</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 5: TRADITIONAL vs ZT COMPARISON -->
+<section class="sec" id="comparison">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow te">Section 5</div>
+      <h2 class="sec-title">Traditional Perimeter <span class="hl" style="color:var(--teal);">vs Zero Trust</span></h2>
+      <p class="sec-desc">Understanding what Zero Trust replaces — and why — is essential for communicating its value. The traditional castle-and-moat model fails in a world of cloud, remote work, and insider threats.</p>
+    </div>
+    <div class="rv" style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <table class="cmp-table">
+        <thead><tr><th>Concept</th><th>Traditional perimeter model</th><th>Zero Trust model</th></tr></thead>
+        <tbody>
+          <tr><td>Trust model</td><td>Implicit — inside the network = trusted</td><td>Explicit — every request verified regardless of location</td></tr>
+          <tr><td>Network access</td><td>VPN grants broad network-level access to entire subnet</td><td>ZTNA grants app-level access only to specific application</td></tr>
+          <tr><td>Lateral movement</td><td>Compromised device can reach all systems in the same subnet</td><td>Microsegmentation limits blast radius to one workload</td></tr>
+          <tr><td>Identity verification</td><td>Verified once at VPN login; session trusted indefinitely</td><td>Continuously re-evaluated; trust score updated in real time</td></tr>
+          <tr><td>Device posture</td><td>Any device inside the network is trusted</td><td>Device must pass compliance check before every session</td></tr>
+          <tr><td>Remote access</td><td>Full VPN tunnel to corporate network — large attack surface</td><td>Application-specific tunnel — internal network never exposed</td></tr>
+          <tr><td>Insider threat</td><td>Insider with network access can reach most systems</td><td>Least-privilege scoping limits insider access to job function</td></tr>
+          <tr><td>Cloud resources</td><td>Backhauled through VPN — high latency, poor experience</td><td>Direct access via ZTNA proxy at nearest cloud PoP</td></tr>
+          <tr><td>Breach impact</td><td>Attacker with foothold can move freely east-west</td><td>Attacker contained to one microsegment; C2 traffic detected immediately</td></tr>
+          <tr><td>Visibility</td><td>Limited — most internal traffic is unmonitored</td><td>Full — every access request logged with identity and device context</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 6: IR SCENARIOS -->
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="scenarios">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow re">Section 6</div>
+      <h2 class="sec-title">Incident Response <span class="hl" style="color:var(--red2);">Scenarios</span></h2>
+      <p class="sec-desc">Two scenarios that demonstrate Zero Trust in action during a security incident — and how each control layer contributes to detection, containment, and recovery.</p>
+    </div>
+    <div class="rv">
+      <div class="scenario-tabs">
+        <button class="stab on" onclick="switchScenario('a',this)">Scenario A — Compromised account credential theft</button>
+        <button class="stab" onclick="switchScenario('b',this)">Scenario B — Insider threat data exfiltration</button>
+      </div>
+      <div class="scenario-body show" id="sc-a">
+        <div class="scenario-desc"><strong>Trigger:</strong> An attacker successfully phishes an employee's password via a lookalike domain. They attempt to log in from a foreign IP address and access sensitive cloud infrastructure. Walk through how Zero Trust detects, contains, and recovers from this credential compromise.</div>
+        <div class="ir-steps" id="irA"></div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <button class="cbtn go" onclick="runIR('a')">▶ Run through all steps</button>
+          <button class="cbtn" onclick="resetIR('a')">↺ Reset</button>
+        </div>
+      </div>
+      <div class="scenario-body" id="sc-b">
+        <div class="scenario-desc"><strong>Trigger:</strong> A departing employee begins downloading unusually large volumes of proprietary files and attempting to access systems outside their normal job function in the two weeks before their departure date. Walk through Zero Trust detection and containment of this insider threat.</div>
+        <div class="ir-steps" id="irB"></div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <button class="cbtn go" onclick="runIR('b')">▶ Run through all steps</button>
+          <button class="cbtn" onclick="resetIR('b')">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 7: VENDORS -->
+<section class="sec" id="vendors">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow gr">Section 7</div>
+      <h2 class="sec-title">Zero Trust <span class="hl" style="color:var(--green2);">Vendor Landscape</span></h2>
+      <p class="sec-desc">No single vendor delivers all of Zero Trust. Organisations typically compose a solution from best-of-breed vendors in each category. The table below maps vendors to their primary Zero Trust function.</p>
+    </div>
+    <div class="rv" style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;">
+      <table class="cmp-table">
+        <thead><tr><th>ZT Function</th><th>Primary vendors</th><th>What they provide</th></tr></thead>
+        <tbody>
+          <tr><td>Identity provider (IdP)</td><td>Okta · Microsoft Entra ID · Ping Identity · CyberArk</td><td>Centralised identity, SAML/OIDC federation, adaptive MFA, lifecycle management</td></tr>
+          <tr><td>Device trust / MDM</td><td>Microsoft Intune · Jamf · VMware Workspace ONE · CrowdStrike Falcon</td><td>Device enrolment, compliance policy, posture assessment, certificate issuance</td></tr>
+          <tr><td>ZTNA / SASE</td><td>Zscaler ZPA · Cloudflare Access · Palo Alto Prisma Access · Netskope</td><td>Application-level remote access without VPN, cloud PoP delivery</td></tr>
+          <tr><td>Microsegmentation</td><td>Illumio · VMware NSX · Guardicore (Akamai) · Cisco Secure Workload</td><td>Workload-level east-west traffic policy, lateral movement prevention</td></tr>
+          <tr><td>PAM</td><td>CyberArk · BeyondTrust · Delinea · HashiCorp Vault</td><td>Privileged access vaulting, JIT elevation, session recording, secrets management</td></tr>
+          <tr><td>SIEM / XDR</td><td>Microsoft Sentinel · Splunk · CrowdStrike Falcon XDR · Palo Alto Cortex XDR</td><td>Log correlation, detection rules, threat hunting, SOAR integration</td></tr>
+          <tr><td>UEBA</td><td>Exabeam · Securonix · Microsoft Sentinel (built-in) · Splunk UBA</td><td>Behavioural baseline, anomaly scoring, insider threat detection</td></tr>
+          <tr><td>CASB</td><td>Netskope · Microsoft Defender for Cloud Apps · Zscaler CASB · Palo Alto CASB</td><td>SaaS visibility, shadow IT discovery, cloud DLP, unsanctioned app control</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECTION 8: QUICK REF -->
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--border);" id="reference">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow bl">Section 8</div>
+      <h2 class="sec-title">Quick <span class="bl">Reference</span></h2>
+      <p class="sec-desc">Key concepts, standards, and decision criteria for Zero Trust implementation.</p>
+    </div>
+    <div class="qref-grid rv" id="qrefGrid"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a href="index.html" class="footer-back">← Back to library</a>
+    <div class="footer-meta">SecArch Lab · Track A · Diagram 02 · Zero Trust Network Architecture · github.com/mizanpranto/secarch-lab</div>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  COMPONENT DATA
+// ═══════════════════════════════════════════════════════════
+const D = {
+  remote:{zone:'Zone 1 — Users & Devices',title:'Remote Workers',sub:'Home, hotel, coffee shop — untrusted networks',
+    desc:'Remote employees connect from a vast range of untrusted networks — home broadband, public Wi-Fi, co-working spaces, and hotel networks. In Zero Trust, none of these networks grant any implicit trust. The security posture is identical whether the user is in a coffee shop or the corporate office.',
+    points:['Zero Trust eliminates VPN tunnel access to the corporate network — the user never joins the internal subnet','The ZTNA proxy broker establishes an application-specific tunnel only after identity and device posture are verified','Split-tunnel and full-tunnel VPN are both replaced — traffic routes via the ZTNA cloud PoP closest to the user','Adaptive MFA triggers stronger authentication factors when login context is anomalous (new location, new device, unusual time)','Session risk is re-evaluated continuously — a risk score spike mid-session (e.g., EDR alert on the device) triggers step-up auth or session revocation']},
+  onprem:{zone:'Zone 1 — Users & Devices',title:'On-premises Users',sub:'Corporate LAN — still zero implicit trust',
+    desc:'One of the most important Zero Trust concepts: users on the internal corporate LAN are not automatically trusted. The principle "never trust the network" means a user physically in the office must still authenticate and be authorised for every resource they access — the LAN is not a trust boundary.',
+    points:['LAN access does not imply application or data access — the internal network is treated as hostile','Lateral movement is prevented: a compromised device on the corporate LAN cannot probe or connect to unrelated systems','Insider threats are constrained by least-privilege policies even when physically in the office on trusted hardware','All on-premises access attempts are logged identically to remote access — no logging gaps on "trusted" segments','Network admission control (NAC) enforces device compliance before the device is allowed to join the corporate LAN at all']},
+  partner:{zone:'Zone 1 — Users & Devices',title:'Partners & Vendors',sub:'Third-party identities — scoped, time-limited access',
+    desc:'External partners, contractors, and vendors historically received broad VPN access to "get the job done." Zero Trust replaces this with scoped, just-in-time access limited precisely to the specific resources required for the engagement duration.',
+    points:['Access scoped to specific applications only — not the corporate network or any adjacent systems','Just-in-time (JIT) provisioning: access granted for a defined time window and automatically revoked when it expires','Third-party identities federated via SAML/OIDC from the vendor\'s own IdP where possible — no shared credential management','All third-party sessions fully logged with user identity, device context, and resource accessed','Anomalous behaviour (access at unusual hours, bulk downloads, access to new resources) triggers immediate alert and review']},
+  svcacc:{zone:'Zone 1 — Users & Devices',title:'Service Accounts',sub:'Workload-to-workload identity — no human credentials',
+    desc:'Machine-to-machine communication — microservices, CI/CD pipelines, automation scripts, serverless functions — requires identity and authorisation just like human users. Service accounts are a primary attacker target because they are often over-privileged and use long-lived static credentials.',
+    points:['Workload identity certificates (SPIFFE/SPIRE standard) replace static API keys and long-lived tokens for service-to-service auth','Short-lived tokens issued per-request by the policy administrator — token lifetime measured in minutes, not months','Permissions restricted to exactly the APIs and data stores each workload needs — nothing more','Certificate rotation fully automated — no human-managed secrets that can be accidentally committed to source code','CI/CD pipeline identities use workload identity, not a human account — cannot be phished, cannot be targeted by MFA fatigue attacks']},
+  managed:{zone:'Zone 1 — Users & Devices',title:'Managed Devices',sub:'MDM-enrolled corporate hardware',
+    desc:'Corporate-enrolled devices under MDM/EMM management can attest to their configuration state. This device posture information feeds directly into the trust scoring — a compliant, managed device grants access to a wider resource set than an unmanaged or non-compliant device.',
+    points:['Device must pass the full compliance checklist: OS patches current, disk encrypted, EDR healthy, screen lock enabled','Corporate PKI issues a device certificate — cryptographic proof of corporate enrolment, not just username/password','Non-compliant devices quarantined to remediation VLAN — IT portal access only until compliance is restored','Compliance check happens at every authentication, not just enrolment — a device that falls out of compliance mid-day loses access','MDM can wipe devices remotely if reported lost or stolen — corporate data is irrecoverable from the device after wipe']},
+  byod:{zone:'Zone 1 — Users & Devices',title:'Unmanaged / BYOD Devices',sub:'Personal devices — maximum restriction posture',
+    desc:'Personal and unmanaged devices present the greatest risk in a Zero Trust environment. Zero Trust handles them by confining their access to a narrow browser-isolated subset of resources — never granting them the same access profile as a fully managed corporate device.',
+    points:['Access restricted to browser-only mode via Remote Browser Isolation — no native app installation permitted','Data download to the personal device is blocked — users can view and edit files in the browser but cannot save locally','No native email sync, no OneDrive/Google Drive sync, no local app access — only the browser session is permitted','Device posture is "unknown" — the policy engine applies the maximum-restriction access profile automatically','Remote browser isolation means even a malware-infected personal device cannot exfiltrate data or attack the corporate environment'],
+    tags:['RBI','Browser isolation','No data download','Maximum restriction']},
+  iot:{zone:'Zone 1 — Users & Devices',title:'IoT / OT Devices',sub:'Non-user endpoints — permanently untrusted',
+    desc:'IoT and Operational Technology devices rarely support modern authentication protocols or EDR agents. Zero Trust treats them as permanently untrusted endpoints, places them in dedicated microsegmented zones, and monitors their traffic patterns continuously for anomalies.',
+    points:['Certificate-based device identity where the platform supports it; MAC address + IP pinning as a constrained fallback','Placed in dedicated IoT VLANs with microsegmentation policies that strictly limit east-west reach to management platform only','Permitted to communicate only with their management console and defined upstream services — no arbitrary internet access','All IoT traffic volume, destination, and protocol anomalies alerted in SIEM — no legitimate IoT device should contact a C2 server','Firmware version tracking: devices running known-vulnerable firmware versions automatically quarantined pending update']},
+  cloudwl:{zone:'Zone 1 — Users & Devices',title:'Cloud Workloads',sub:'VMs · containers · functions — workload identity',
+    desc:'Virtual machines, containers, and serverless functions must authenticate and be authorised for every resource they access. Cloud-native workload identity replaces static IAM access keys and SSH keys with short-lived, automatically rotated tokens.',
+    points:['AWS IAM Roles, Azure Managed Identity, and GCP Service Accounts provide native workload identity — no static access keys','SPIFFE/SPIRE provides portable workload identity that works consistently across multi-cloud and on-premises environments','Container identity is bound to the pod spec — a stolen container image cannot impersonate a running pod\'s identity','All cloud API calls and resource access events logged to CloudTrail/Activity Log and forwarded to SIEM','Least-privilege IAM policies enforced — no wildcard permissions, no PowerUser roles, no standing admin access in production']},
+  idp:{zone:'Zone 2 — Control Plane',title:'Identity Provider (IdP)',sub:'Okta · Microsoft Entra ID · Ping Identity',
+    desc:'The IdP is the authoritative source of identity for all users and workloads in the Zero Trust architecture. Every access request must present a verifiable identity claim from a trusted IdP before any resource evaluation can begin.',
+    points:['Centralised directory for all user accounts, groups, role assignments, and device registrations','Supports SAML 2.0, OIDC, and OAuth 2.0 for federation with SaaS applications and partner organisations','Single sign-on gateway — users authenticate once; IdP asserts identity to every connected application via tokens','Conditional access policies enforce MFA and block risky sign-in patterns before any token is issued','SCIM provisioning: when HR creates or offboards a user, the IdP is automatically updated — no manual account management','Separation: the IdP is a control-plane component — it issues tokens but does not enforce data-plane access itself'],
+    tags:['SAML 2.0','OIDC','OAuth 2.0','SCIM','Conditional access','SSO']},
+  mfa:{zone:'Zone 2 — Control Plane',title:'MFA / Passwordless',sub:'FIDO2 · TOTP · Push notification',
+    desc:'Multi-factor authentication is the single highest-impact control in Zero Trust. Passwordless FIDO2 eliminates phishable credentials entirely — the private key never leaves the device and cannot be captured by a phishing page, attacker-in-the-middle, or credential stuffing attack.',
+    points:['FIDO2/WebAuthn: phishing-resistant hardware token or biometric — the credential is device-bound and cryptographically tied to the relying party domain','Number-matching push: when push MFA is used, the user must type a number from the login screen into the push notification — prevents MFA fatigue attacks','Adaptive MFA: the risk engine escalates to a stronger factor when sign-in context is anomalous — step-up does not interrupt normal sessions','MFA fatigue attacks: attacker repeatedly sends push notifications hoping the user approves one. Number matching eliminates this — require it for all push-based MFA','TOTP is acceptable but requires a separate device — authenticator app codes can be phished via real-time AITM proxy attacks, unlike FIDO2'],
+    tags:['FIDO2','WebAuthn','TOTP','MFA fatigue resistance','Phishing-resistant']},
+  mdm:{zone:'Zone 2 — Control Plane',title:'Device Trust / MDM',sub:'Microsoft Intune · Jamf · VMware Workspace ONE',
+    desc:'Device posture is a critical trust signal in Zero Trust. MDM platforms continuously report whether a device meets the security baseline required to access corporate resources. Non-compliant devices are quarantined automatically without any human intervention required.',
+    points:['Compliance checks evaluated at every authentication: OS patch level, disk encryption status, EDR agent health, screen lock policy, and jailbreak/root detection','Device certificate issued by corporate PKI — proves device identity independently of user credentials, survives user password resets','Non-compliant devices automatically redirected to the remediation portal — corporate apps are inaccessible until compliance is restored','Mobile Threat Defence (MTD) integration flags jailbroken/rooted devices, malicious profiles, and network-level attacks (e.g. SSL stripping)','Device lifecycle: enrolment, compliance monitoring, remote wipe, and automated retirement are all managed through the MDM platform'],
+    tags:['Compliance policy','Device certificate','MDM enrolment','Remote wipe','MTD']},
+  pam:{zone:'Zone 2 — Control Plane',title:'Privileged Access Management',sub:'CyberArk · BeyondTrust · Delinea · HashiCorp Vault',
+    desc:'PAM governs access to the most sensitive accounts and systems — domain administrators, root credentials, cloud super-admin roles, and database DBA accounts. Zero Trust requires just-in-time elevation with full session recording and automatic revocation.',
+    points:['Just-in-time access: elevated permissions granted for a defined time window (e.g., 2 hours), then automatically revoked with no human action required','Credential vaulting: privileged passwords are never known to humans — the PAM vault rotates them automatically and provides temporary checkout for sessions','Full session recording: every keystroke and screen action in a privileged session is captured and stored — admissible in incident investigations','Break-glass emergency access: predefined procedure for emergency access that requires multi-party approval, full audit, and post-action justification','Secrets management: application secrets, API keys, and database passwords stored in vault, never hardcoded — retrieved programmatically at runtime'],
+    tags:['JIT elevation','Credential vaulting','Session recording','Break-glass','Secrets management']},
+  risk:{zone:'Zone 2 — Control Plane',title:'Risk & Context Engine',sub:'Aggregates signals → dynamic trust score',
+    desc:'The risk engine aggregates dozens of real-time signals to produce a dynamic trust score for every access request. This score continuously updates throughout the session — not just at login. A trust score that degrades mid-session triggers step-up authentication or session termination.',
+    points:['Geolocation: unexpected country, city, or ISP compared to the user\'s historical sign-in locations','Impossible travel: login from London followed by login from Singapore within 30 minutes — automatic block','IP reputation: Tor exit nodes, anonymising proxies, and known malicious hosting ranges automatically denied','Time of day: access requests at 3am by a user who never normally works outside business hours scored higher risk','Device anomalies: new device registration, device compliance state change, EDR alert on device during active session','Threat intelligence feed: if the source IP appears in a fresh IOC feed, trust score drops immediately even mid-session'],
+    tags:['Dynamic scoring','Geolocation','Impossible travel','Threat signals','Continuous evaluation']},
+  pe:{zone:'Zone 2 — Control Plane',title:'Policy Engine (PE)',sub:'Trust decision brain — evaluates all signals',
+    desc:'The Policy Engine is the brain of Zero Trust. It evaluates the composite trust score, the user\'s role, the requested resource\'s sensitivity classification, and all organisational policies to produce a binary or conditional access decision.',
+    points:['Input: identity claims + device posture score + risk context score + resource sensitivity classification + organisational policies','Policy logic: Attribute-Based Access Control (ABAC) or Role-Based (RBAC) policies, or a combination of both depending on resource tier','Output: DENY / GRANT(scoped token) / STEP-UP(request stronger factor) / ISOLATE(restrict to browser-only mode)','Policy-as-code: all rules written in version-controlled code, peer-reviewed, tested in staging, deployed with change approval','Continuous evaluation: the PE re-evaluates the active session whenever a new risk signal arrives — not just at login','Least privilege by default: if no policy explicitly grants access, the default is DENY — not allow'],
+    tags:['ABAC','RBAC','Policy-as-code','Continuous evaluation','Default deny']},
+  pa:{zone:'Zone 2 — Control Plane',title:'Policy Administrator (PA)',sub:'Issues / revokes tokens · Communicates with PEPs',
+    desc:'The Policy Administrator acts on the Policy Engine\'s decision. It issues the cryptographically signed, scoped access token (authorising the session) and communicates decisions to all Policy Enforcement Points. When monitoring detects anomalous behaviour mid-session, the PA revokes the token in real time.',
+    points:['Issues short-lived, scoped OAuth 2.0 / JWT tokens — lifetime typically 15–60 minutes, forcing periodic re-evaluation','Token scope encodes exactly which resources and operations are permitted for this specific session — read-only where write is not required','Communicates with all PEPs (ZTNA, SWG, CASB, microsegmentation) to install or revoke session policies in real time','Revocation propagated to all PEPs within seconds of a monitoring alert — no waiting for token natural expiry','The PA is the single authoritative source for session state — PEPs only permit traffic that has an active PA-issued token'],
+    tags:['JWT token','Scoped access','Real-time revocation','15–60 min lifetime','OAuth 2.0']},
+  deny:{zone:'Policy Decision',title:'Access Denied',sub:'Trust signals below required threshold — request blocked',
+    desc:'The Policy Engine denies the request when the composite trust score falls below the threshold required for the requested resource. Denials are designed to be informative to legitimate users and uninformative to attackers.',
+    points:['Legitimate users receive a specific reason: "Access denied — your device does not meet the compliance requirement" with a link to the remediation portal','Attacker receives a generic 401/403 with no signal indicating that detection occurred or which specific check failed','Deny event logged with all evaluated signals — trust score breakdown, device posture state, risk signals triggered','Repeated denials from the same identity within a time window trigger automated account risk elevation and SOC alert','The deny decision is specific to the resource requested — the user may still have access to lower-sensitivity resources in the same session']},
+  stepup:{zone:'Policy Decision',title:'Step-up Authentication Required',sub:'Risk elevated but not denial threshold — additional factor triggered',
+    desc:'When the risk score exceeds a threshold but is not high enough to deny outright — and the request is for a resource that supports additional verification — the Policy Engine requests a step-up authentication factor before issuing the token.',
+    points:['Example: user on an unmanaged device accessing a medium-sensitivity app — step-up to hardware MFA token required','Example: login from a new geographic location — re-authentication required even within an existing active session','Step-up requests are proportional to the sensitivity of the resource being accessed — higher sensitivity requires stronger factors','Failure to complete step-up within the timeout window results in session termination and re-authentication required from scratch','Step-up events are logged with reason — enables SOC to identify patterns of step-up triggers that may indicate an attacker probing access levels']},
+  grant:{zone:'Policy Decision',title:'Access Granted',sub:'Scoped, time-limited token issued — minimum privilege',
+    desc:'When all trust signals satisfy the policy requirements for the requested resource, the Policy Administrator issues a scoped, time-limited access token. This token grants precisely the access defined in policy — nothing beyond what was explicitly authorised.',
+    points:['Token lifetime: 15–60 minutes for most resources; longer for low-sensitivity public apps, shorter for high-sensitivity data stores','Scope: read-only where write is not required; specific API endpoints rather than entire services; specific data classifications only','Token is cryptographically signed — enforcement points verify the signature locally without calling back to the PA for every request','Access is not to the network segment — only to the specific application or API endpoint the token was issued for','Session continuation: as long as risk signals remain below threshold, the token is silently refreshed without user disruption']},
+  ztna:{zone:'Zone 3 — Enforcement Points',title:'ZTNA Proxy / Broker',sub:'Application-level access · No VPN · No network exposure',
+    desc:'ZTNA is the Zero Trust replacement for VPN. Instead of placing the user on the corporate network, the ZTNA proxy establishes an application-layer connection between the user\'s device and the specific application — the internal network is never accessible to the user or visible from the internet.',
+    points:['User\'s device connects to the ZTNA broker\'s nearest cloud PoP — never directly to the corporate network or application server','Broker validates the session token from the PA, then proxies application traffic to an internal connector installed in the corporate network','Internal applications are completely dark to the internet — no published IP address, no open TCP ports, no DNS record accessible externally','An attacker with the user\'s device cannot reach any other application or system even if the ZTNA session is compromised — no lateral movement path exists','Performance: ZTNA routes traffic optimally via cloud PoPs — typically faster than VPN backhauling traffic to a central gateway'],
+    tags:['Application-level tunnel','No VPN','Dark infrastructure','Cloud PoP','No lateral movement']},
+  swg:{zone:'Zone 3 — Enforcement Points',title:'Secure Web Gateway (SWG)',sub:'All web traffic inspected · SSL/TLS decryption',
+    desc:'The SWG inspects all user-initiated web traffic — browser sessions, web application access, SaaS usage, and internet-destined API calls. Full SSL/TLS decryption enables visibility into encrypted threats, malware downloads, and data exfiltration attempts.',
+    points:['Full TLS inspection: all HTTPS traffic decrypted, inspected, and re-encrypted — encrypted malware and C2 channels are fully visible','URL and content categorisation: blocks malicious, phishing, and policy-prohibited sites based on real-time threat intelligence','Malware scanning: all downloaded files scanned — gateway AV catches malicious downloads before they reach the endpoint','Policy enforcement: application-specific controls (e.g., allow Google Drive viewing but block uploads from unmanaged devices)','Zero Trust posture: SWG applies the user\'s device posture and identity to web access decisions — an unmanaged device gets stricter SWG policies'],
+    tags:['TLS inspection','URL filtering','Malware scanning','Cloud-delivered','User identity-aware']},
+  casb:{zone:'Zone 3 — Enforcement Points',title:'Cloud Access Security Broker (CASB)',sub:'SaaS visibility · Shadow IT · Cloud DLP',
+    desc:'CASB provides visibility and control over SaaS application usage — both sanctioned apps (M365, Salesforce, Slack) and unsanctioned shadow IT discovered via log analysis or inline inspection. It applies DLP policies to cloud storage and prevents data exfiltration to personal accounts.',
+    points:['Shadow IT discovery: identifies all SaaS applications employees are uploading corporate data to — typically hundreds of unsanctioned apps discovered in first scan','Blocks upload of sensitive data to personal OneDrive, Google Drive, Dropbox, or other personal cloud storage accounts','Detects impossible travel and bulk-download anomalies within SaaS platforms that the platform itself might not alert on','API-mode integration with M365/Google Workspace provides retroactive DLP scanning of existing data at rest in cloud storage','Tenant restriction: ensures users can only access the corporate tenant of SaaS apps — cannot sign into their personal M365 account on managed devices'],
+    tags:['Shadow IT discovery','Cloud DLP','API-mode','Tenant restriction','SaaS visibility']},
+  ngfw:{zone:'Zone 3 — Enforcement Points',title:'Next-Generation Firewall',sub:'L7 application-aware · IPS · SSL inspection',
+    desc:'The NGFW performs Layer 7 application-aware inspection on traffic flowing through the internal network perimeter. In Zero Trust it acts as a secondary enforcement point and provides IPS capabilities for network-layer threats that ZTNA and SWG do not cover.',
+    points:['Application-layer identification and control: recognises and applies policy to specific SaaS apps and protocols, not just port/IP','Intrusion Prevention System (IPS): blocks known exploit signatures, vulnerability probes, and anomalous protocol behaviour in real time','SSL/TLS inspection on internal east-west traffic: encrytped lateral movement attempts are visible to IPS','Threat intelligence integration: automatically blocks traffic to/from newly identified malicious IPs and domains from live feeds','In Zero Trust deployments, NGFW is a defence-in-depth layer — the primary controls are identity and ZTNA, not the firewall perimeter'],
+    tags:['L7 inspection','IPS','East-west visibility','Threat intel integration','Defence-in-depth']},
+  microseg:{zone:'Zone 3 — Enforcement Points',title:'Microsegmentation',sub:'East-west lateral movement prevention · Workload-level policy',
+    desc:'Microsegmentation is the enforcement of fine-grained access controls between individual workloads. It is the primary control that prevents lateral movement once an attacker has a foothold inside the network — compromising one workload does not provide a path to adjacent systems.',
+    points:['Policy defined at the workload level: "App A is permitted to reach Database B on port 5432 TCP only" — all other traffic between them is blocked by default','Software-defined policies (not VLANs) that follow the workload as it migrates across data centres, cloud regions, and Kubernetes clusters','Default deny between all workload pairs not explicitly whitelisted — an attacker with a foothold cannot probe or connect to any other workload','Breach containment: a compromised workload in segment A has no network path to segment B, even if both are on the same physical host or hypervisor','Policy visualisation: microsegmentation platforms map all actual communication flows and highlight policy violations before enforcement'],
+    tags:['East-west control','Default deny','Workload-level policy','Breach containment','Software-defined']},
+  apigw:{zone:'Zone 3 — Enforcement Points',title:'API Gateway',sub:'OAuth 2.0 token validation · Scope enforcement · Rate limiting',
+    desc:'The API gateway enforces Zero Trust for programmatic access to internal services. Every API call must present a valid, scoped OAuth 2.0 token. The gateway validates the token signature, checks scope permissions, applies rate limiting, and logs every call with caller identity.',
+    points:['JWT/OAuth 2.0 token validation at the gateway — no token, no API call processed, regardless of source IP or network location','Scope enforcement: a token issued for read operations cannot invoke a write or admin endpoint — even if the same service is requested','Rate limiting and throttling: prevents credential stuffing and API enumeration attacks by limiting requests per token per time window','All API traffic logged with: caller identity, endpoint called, HTTP method, response code, and latency — complete audit trail in SIEM','mTLS for service-to-service APIs: mutual TLS ensures both the API client and server authenticate to each other — not just the server to the client'],
+    tags:['OAuth 2.0','JWT validation','Scope enforcement','Rate limiting','mTLS']},
+  dlp:{zone:'Zone 3 — Enforcement Points',title:'Inline DLP',sub:'Data in motion · Exfiltration prevention',
+    desc:'Inline DLP inspects data at the enforcement point — file uploads, API payloads, clipboard contents in remote browser sessions, and email attachments — blocking exfiltration attempts before sensitive data crosses the boundary.',
+    points:['Content inspection: regex patterns, ML classifiers, and exact data fingerprinting detect PII, source code, financial models, and proprietary documents','Classification label enforcement: files tagged "CONFIDENTIAL" or "RESTRICTED" cannot be uploaded to unapproved destinations regardless of content inspection result','Clipboard and screen capture controls in Remote Browser Isolation sessions — copy-paste of sensitive data to unmanaged device clipboard blocked','Integration with CASB extends DLP policies to cloud storage platforms — retroactive scanning of files already stored in SaaS','Actions: block silently / notify user / quarantine pending manager approval / allow with high-priority audit log entry'],
+    tags:['Content inspection','ML classifiers','Data fingerprinting','Clipboard control','Manager approval']},
+  saas:{zone:'Zone 4 — Protected Resources',title:'SaaS Applications',sub:'M365 · Salesforce · GitHub · Slack — via CASB + ZTNA',
+    desc:'Cloud-based productivity and business applications accessed exclusively via CASB and identity-aware proxy — never directly from the public internet by unauthenticated users. Conditional access policies enforce MFA and compliant-device requirements for each application independently.',
+    points:['Each SaaS app has its own access policy: some require FIDO2, others permit TOTP; some require managed device, others permit BYOD with DLP controls','Tenant restriction enforced at the proxy level — employees cannot access their personal Microsoft or Google account on corporate devices','Session controls: in-app actions (download, print, share externally) are restricted based on device posture and user role within the SaaS app','Activity logs from SaaS APIs ingested by CASB and SIEM — unusual bulk-download or permission-change events alerted immediately','Token lifetime for SaaS tokens mirrors the Zero Trust policy — re-authentication required after inactivity timeout or risk score increase'],
+    tags:['Conditional access','Tenant restriction','Session controls','Per-app policy','SaaS API logging']},
+  privapp:{zone:'Zone 4 — Protected Resources',title:'Private / On-premises Apps',sub:'Legacy systems published via ZTNA connector',
+    desc:'Legacy internal applications that cannot be modernised to support OAuth 2.0 are published via a ZTNA connector installed in the DMZ. Modern authentication is added in front of the legacy app — the application itself requires no code changes.',
+    points:['ZTNA connector installed in the DMZ establishes an outbound-only encrypted tunnel to the ZTNA broker cloud — no inbound firewall ports required','The internal application is completely dark to the internet — attackers cannot discover, scan, or probe its attack surface','ZTNA broker handles modern authentication (SAML/OIDC) and validates the session token before proxying any traffic to the connector','Application header injection: the ZTNA broker can insert authenticated user identity headers that the legacy app can use for authorisation without supporting OIDC natively','Gradual migration path: wrap legacy apps with ZTNA now for immediate security improvement; modernise the authentication stack as a separate project'],
+    tags:['ZTNA connector','Dark infrastructure','Header injection','No code changes','Legacy app modernisation']},
+  cloud:{zone:'Zone 4 — Protected Resources',title:'Cloud Infrastructure',sub:'AWS · Azure · GCP — workload identity, no standing access',
+    desc:'Cloud VMs, Kubernetes clusters, and serverless functions are isolated in microsegmented VPCs. All privileged access is brokered through PAM — no direct inbound SSH or RDP ports are exposed. Workload identity replaces static IAM access keys.',
+    points:['No public SSH or RDP ports: all privileged infrastructure access via PAM jump server or ZTNA broker — attackers cannot find the attack surface','Kubernetes cluster API endpoint restricted to management VPN/ZTNA — not exposed to the public internet at any time','Cloud IAM: least-privilege roles, no wildcard policies, mandatory MFA for console access, CloudTrail/Activity Log audit logging enabled','Workload identity: AWS IAM Roles, Azure Managed Identity, GCP Service Accounts — no static access key IDs or secret keys','Infrastructure-as-code pipeline: all cloud resource deployments scanned for policy violations (no public S3 buckets, no open security groups) before apply'],
+    tags:['No public SSH/RDP','Workload identity','Least-privilege IAM','IaC policy scanning','MFA for console']},
+  data:{zone:'Zone 4 — Protected Resources',title:'Data Stores',sub:'Databases · data lakes · file stores — classified, scoped access',
+    desc:'Data stores are the ultimate target. Zero Trust places multiple enforcement layers in front of them, classifies data so policy can be applied at the record level, and logs every access query with the requesting identity for forensic reconstruction.',
+    points:['Data classification labels (PUBLIC / INTERNAL / CONFIDENTIAL / RESTRICTED) applied at creation and enforced by DLP and access controls','Database access brokered via PAM — no direct developer access to production databases. Credentials checked out for session, then rotated','Row-level security (RLS) policies ensure users only see the data rows their role explicitly permits — no broad table access','All data access queries logged with user identity, query executed, rows returned — SIEM detects bulk extraction anomalies in real time','Data tokenisation and masking: sensitive fields (card numbers, SSNs) masked in query results for non-privileged roles — full value accessible only to authorised roles'],
+    tags:['Data classification','PAM brokered access','Row-level security','Query logging','Tokenisation']},
+  devops:{zone:'Zone 4 — Protected Resources',title:'DevOps / CI-CD Pipelines',sub:'Source code · pipelines — high-value supply chain target',
+    desc:'Source code repositories and CI/CD pipelines are extremely high-value attack targets — compromising a pipeline enables supply-chain attacks affecting every organisation that uses the resulting software. Zero Trust applies the same controls to developer access as to any other resource.',
+    points:['Code repositories require MFA and managed device compliance — browser-only access to production repos is not permitted for code pushes','CI/CD pipeline secrets managed by a dedicated secrets manager (HashiCorp Vault, AWS Secrets Manager) — never stored in environment variables or source code','Pipeline execution identity is a workload identity, not a human account — it has no MFA to bypass, no password to phish','All pipeline runs, secret accesses, and deployment events logged and reviewed by the security team for anomalies','Branch protection rules: direct pushes to main/production branches are blocked — all changes require pull request and code review approval'],
+    tags:['Pipeline workload identity','Secrets management','Branch protection','Supply chain security','Code review required']},
+  siem:{zone:'Zone 5 — Monitoring',title:'SIEM / XDR Platform',sub:'Correlation · detection · threat hunting',
+    desc:'The SIEM ingests telemetry from every layer of the Zero Trust stack — identity events, device posture changes, network flows, application access, and data access queries — and correlates events across sources to detect multi-stage attacks that no single control could identify.',
+    points:['Ingests from all layers: IdP sign-in events, MDM compliance changes, ZTNA access logs, SWG web logs, CASB SaaS events, microsegmentation flow logs, PAM session events','Correlation example: "Failed MFA×5 from same IP within 60 seconds → Brute force alert + immediate IP block + SOC notification"','Dashboard KPIs: failed authentication attempts, policy denial reasons, device compliance state trends, privileged access session volume','Threat hunting: analysts query historical access logs to find patterns matching emerging Zero Trust bypass techniques','XDR extends SIEM to include endpoint telemetry (process execution, file system, network) for full kill-chain reconstruction across user, device, and network layers'],
+    tags:['Multi-source correlation','XDR','Threat hunting','Kill-chain reconstruction','SOAR integration']},
+  ueba:{zone:'Zone 5 — Monitoring',title:'UEBA',sub:'User & Entity Behaviour Analytics · dynamic trust scoring',
+    desc:'UEBA builds statistical baselines of normal behaviour for every user, device, and workload. Deviations — at unusual hours, bulk downloads, new resource access, abnormal API call rates — produce risk scores that feed back to the Policy Engine, enabling continuous re-evaluation of active sessions.',
+    points:['Baseline built over 30–90 days: typical login times, accessed applications, data volumes, geographic locations, and peer-group behaviour','Anomaly scoring: sudden access to systems outside the user\'s normal job function scores high risk — even if the user has policy permission','Insider threat detection: departing employee downloading 10× normal file volume triggers alert + SOAR action within minutes','Peer-group analytics: if a user\'s access patterns suddenly match a more privileged peer group they don\'t belong to, that\'s a strong compromise indicator','Dynamic trust score from UEBA continuously updates the PE — an active session with a degrading trust score triggers step-up auth without user-visible interruption'],
+    tags:['Behavioural baseline','Dynamic risk scoring','Insider threat','Peer-group analysis','Real-time PE feedback']},
+  soar:{zone:'Zone 5 — Monitoring',title:'SOAR',sub:'Security Orchestration, Automation & Response',
+    desc:'SOAR automates the response actions that follow SIEM and UEBA alerts, compressing mean-time-to-respond from hours to seconds for well-defined threat scenarios. Zero Trust architectures have well-defined response primitives that SOAR can invoke directly.',
+    points:['Playbook: "Impossible travel detected" → disable account session + notify user + create SOC ticket + alert line manager','Playbook: "UEBA bulk download anomaly" → revoke active token + require step-up re-auth + quarantine files in DLP review + alert data owner','Playbook: "Failed MFA ×5 from single IP" → block IP in IdP + SWG + NGFW simultaneously + SOC notification with full context','Playbook: "MDM non-compliance detected during active session" → revoke token + notify user to remediate + log for compliance reporting','All automated actions logged with full justification and can be reviewed, overridden, or extended by the SOC analyst post-facto'],
+    tags:['Automated playbooks','MTTR reduction','Token revocation','Multi-system orchestration','Human override']},
+  ti:{zone:'Zone 5 — Monitoring',title:'Threat Intelligence',sub:'IOC feeds · TTP mapping · Proactive policy updates',
+    desc:'Threat intelligence supplies the risk engine, IdP, and SIEM with current indicators of compromise — malicious IPs, domains, file hashes, and attacker TTPs. Fresh IOCs are automatically actioned into Zero Trust controls, reducing the window between threat discovery and protection.',
+    points:['Commercial feeds (CrowdStrike Falcon X, Recorded Future, Mandiant) provide high-quality IOCs and attacker campaign context in STIX/TAXII format','Open-source feeds (AlienVault OTX, Abuse.ch, Spamhaus) augment commercial intel with community-maintained IOC lists','IP reputation feeds update the risk engine\'s context signal in real time — a source IP appearing in a fresh IOC feed drops the trust score immediately','MITRE ATT&CK mapping: every SIEM detection rule mapped to a technique for coverage gap analysis and purple team exercise planning','Zero Trust-specific TTPs: attackers target IdP, PAM, and token theft — threat intel feeds enable the security team to stay ahead of bypass techniques'],
+    tags:['STIX/TAXII','Real-time IOC actioning','ATT&CK mapping','Commercial + OSINT','Proactive blocking']},
+  soc:{zone:'Zone 5 — Monitoring',title:'SOC Team',sub:'Human-in-the-loop · Investigation · Continuous improvement',
+    desc:'The SOC team provides the contextual judgment that automated systems cannot. They investigate SIEM alerts, review UEBA anomalies, manage the SOAR playbook library, and continuously improve Zero Trust policy configurations based on observed attack patterns and false-positive rates.',
+    points:['Tier 1: Triage SIEM alerts, validate SOAR automated actions, manage false-positive feedback to improve detection rules','Tier 2: Deep investigation — full access log analysis, device forensics, identity timeline reconstruction, kill-chain mapping','Tier 3 / Threat Intel: identify attacker Zero Trust bypass techniques, update detection rules, model new attack paths against the architecture','Policy review cycle: quarterly review of ZTNA access policies, microsegmentation rules, DLP policy hit rates, and denied request trends','Purple team exercises: red team attempts Zero Trust bypass; blue team tunes detection and policy — continuous improvement loop'],
+    tags:['3-tier model','Policy tuning','Purple team','SOAR playbook management','Continuous improvement']},
+};
+
+// ═══════════════════════════════════════════════════════════
+//  ARCH INTERACTIONS
+// ═══════════════════════════════════════════════════════════
+const FLOWS = {
+  access:   ['c-remote','c-managed','c-idp','c-mfa','c-mdm','c-risk','c-pe','c-pa','c-grant','c-ztna','c-privapp','c-siem'],
+  granted:  ['c-remote','c-managed','c-idp','c-mfa','c-risk','c-pe','c-grant','c-ztna','c-saas','c-casb','c-siem','c-ueba'],
+  deny:     ['c-remote','c-byod','c-idp','c-risk','c-pe','c-deny','c-siem','c-soar'],
+  compromise:['c-remote','c-idp','c-mfa','c-risk','c-pe','c-stepup','c-ueba','c-soar','c-deny','c-siem','c-soc'],
+};
+let current = null, traceTimer = null;
+
+function show(id) {
+  const d = D[id]; if (!d) return;
+  if (current) { const e = document.getElementById('c-' + current); if (e) e.className = e.className.replace(/\s?lit[\w-]*/g,''); }
+  current = id;
+  const el = document.getElementById('c-' + id); if (el) el.classList.add('lit');
+  const p = document.getElementById('detail');
+  const tags = d.tags ? `<div class="dp-tags">${d.tags.map(t=>`<span class="dp-tag">${t}</span>`).join('')}</div>` : '';
+  p.innerHTML = `<div class="dp-zone">${d.zone}</div><div class="dp-title">${d.title}</div><div class="dp-sub">${d.sub}</div><div class="dp-desc">${d.desc}</div><ul class="dp-points">${d.points.map(pt=>`<li>${pt}</li>`).join('')}</ul>${tags}`;
+  p.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function traceFlow(type) {
+  resetArch(false);
+  const steps = FLOWS[type]; if (!steps) return;
+  let i = 0;
+  function step() {
+    if (i > 0) { const pe = document.getElementById(steps[i-1]); if (pe) pe.className = pe.className.replace(/\s?lit[\w-]*/g,''); }
+    if (i >= steps.length) return;
+    const id = steps[i].replace('c-','');
+    const el = document.getElementById(steps[i]);
+    if (el) {
+      const cls = (type==='deny'||type==='compromise') ? 'lit-red' : (type==='access'||type==='granted') ? 'lit-green' : 'lit-amber';
+      el.classList.add(cls);
+      if (D[id]) show(id);
+    }
+    i++; traceTimer = setTimeout(step, 920);
+  }
+  step();
+}
+
+function resetArch(clear=true) {
+  if (traceTimer) clearTimeout(traceTimer);
+  Object.keys(D).forEach(id => {
+    const el = document.getElementById('c-'+id);
+    if (el) el.className = el.className.replace(/\s?lit[\w-]*/g,'');
+  });
+  current = null;
+  if (clear) document.getElementById('detail').innerHTML = '<div class="dp-placeholder">Click any component above to explore it in depth</div>';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PRINCIPLES
+// ═══════════════════════════════════════════════════════════
+const PRINCIPLES = [
+  {num:'Principle 01',title:'Never trust, always verify',cls:'pc-p',tag:'Verification model',
+   desc:'Every access request — regardless of where it originates — is treated as if it comes from an untrusted, potentially hostile network. This applies equally to a request from the corporate LAN, a partner network, or the public internet. No implicit trust is granted based on network location.'},
+  {num:'Principle 02',title:'Least privilege access',cls:'pc-b',tag:'Access scoping',
+   desc:'Users and workloads are granted only the minimum access required to perform their specific job function — nothing more. Permissions are scoped to specific resources (not subnets), specific operations (read-only where write is not needed), and specific time windows (JIT access for privileged operations).'},
+  {num:'Principle 03',title:'Assume breach',cls:'pc-r',tag:'Threat posture',
+   desc:'Design as if attackers are already inside the network. This mindset drives microsegmentation (limit lateral movement), full logging (see everything the attacker sees), and minimum privilege (limit the damage a compromised identity can cause). Every control is designed to limit blast radius.'},
+  {num:'Principle 04',title:'Verify explicitly',cls:'pc-g',tag:'Authentication depth',
+   desc:'Every authentication must be backed by all available signals — identity, device posture, location, time, behaviour, and threat intelligence — not just a username and password. Contextual signals are combined into a dynamic trust score that gates access to each resource independently.'},
+  {num:'Principle 05',title:'Continuous validation',cls:'pc-a',tag:'Session security',
+   desc:'Trust is not established once and maintained for the session\'s lifetime. The trust score is re-evaluated continuously throughout every session. A change in any signal — device goes non-compliant, threat intel flags the source IP, UEBA detects anomalous behaviour — triggers immediate re-evaluation.'},
+];
+
+function renderPrinciples() {
+  document.getElementById('principlesGrid').innerHTML = PRINCIPLES.map(p =>
+    `<div class="prin-card ${p.cls}">
+      <div class="prin-num">${p.num}</div>
+      <div class="prin-title">${p.title}</div>
+      <div class="prin-desc">${p.desc}</div>
+      <span class="prin-tag">${p.tag}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PIPELINE
+// ═══════════════════════════════════════════════════════════
+const PIPE = [
+  {n:1,c:'step-pu',title:'Identity claim presented',sub:'IdP evaluates credentials',desc:'User or workload presents credentials to the Identity Provider. For human users this is a passkey, FIDO2 key, or username/password. For workloads this is a workload identity certificate or short-lived token. The IdP validates the credential against its directory.',out:'Identity claim: VALID / INVALID'},
+  {n:2,c:'step-pu',title:'MFA evaluation',sub:'Additional factor required',desc:'If primary credentials pass, the IdP evaluates the MFA requirement for this user and risk context. For standard access this may be a TOTP or push. For privileged access, FIDO2 hardware is required. Adaptive MFA escalates the factor requirement based on risk signals.',out:'MFA: PASS / FAIL / STEP-UP'},
+  {n:3,c:'step-bl',title:'Device posture assessment',sub:'MDM compliance check',desc:'MDM evaluates the requesting device\'s compliance state: OS patch level, disk encryption, EDR health, screen lock policy. A device certificate is validated cryptographically. The result — compliant / non-compliant / unknown — becomes a trust signal for the Policy Engine.',out:'Device posture: COMPLIANT / NON-COMPLIANT'},
+  {n:4,c:'step-bl',title:'Context & risk scoring',sub:'All signals aggregated',desc:'The Risk Engine aggregates all available context signals: geolocation, time of day, source IP reputation, impossible travel detection, device posture score, UEBA anomaly score, and active threat intelligence. A composite trust score is produced.',out:'Trust score: HIGH / MEDIUM / LOW / DENIED'},
+  {n:5,c:'step-am',title:'Policy Engine evaluation',sub:'ABAC / RBAC policy applied',desc:'The Policy Engine evaluates the trust score against the policies defined for the requested resource. The resource\'s sensitivity classification, the user\'s role, the device posture tier, and the risk score all feed into the policy logic.',out:'Decision: GRANT / STEP-UP / DENY'},
+  {n:6,c:'step-gr',title:'Token issuance',sub:'Scoped, time-limited JWT',desc:'The Policy Administrator issues a cryptographically signed OAuth 2.0 / JWT access token. The token scope encodes exactly which resource and operations are permitted. Token lifetime is 15–60 minutes. The token is cryptographically unmodifiable.',out:'JWT token: issued with scope + expiry'},
+  {n:7,c:'step-te',title:'Enforcement point validation',sub:'PEP verifies token signature',desc:'The ZTNA proxy, API gateway, SWG, or microsegmentation policy receives the token. The PEP validates the cryptographic signature locally without calling the PA for every request. If the token is valid and unexpired, the connection is established.',out:'Connection: PERMITTED / BLOCKED'},
+  {n:8,c:'step-gr',title:'Session monitoring',sub:'Continuous risk evaluation',desc:'During the active session, all actions are logged. UEBA, SIEM, and threat intelligence feeds continuously update the user\'s risk score. Any significant change triggers the PA to revoke the token — the next request will fail and require re-authentication.',out:'Session: ACTIVE / STEP-UP / REVOKED'},
+  {n:9,c:'step-re',title:'Token expiry / revocation',sub:'Session ends — clean or forced',desc:'Token expires naturally after its lifetime (normal clean end of session) or is actively revoked by the PA when a monitoring signal triggers a policy change. Revocation is propagated to all PEPs in real time — not waiting for natural token expiry.',out:'Session: ENDED / REVOKED'},
+];
+
+function renderPipeline() {
+  const half = Math.ceil(PIPE.length / 2);
+  const mkStep = (s, isLast) =>
+    `<div class="pipe-step ${s.c}">
+      <div class="ps-left">
+        <div class="ps-num">${s.n}</div>
+        ${!isLast ? '<div class="ps-line"></div>' : ''}
+      </div>
+      <div class="ps-box">
+        <div class="ps-title">${s.title}</div>
+        <div class="ps-sub">${s.sub}</div>
+        <div class="ps-desc">${s.desc}</div>
+        <span class="ps-output">→ ${s.out}</span>
+      </div>
+    </div>`;
+  document.getElementById('pipeL').innerHTML = PIPE.slice(0,half).map((s,i) => mkStep(s, i===half-1 && half>=PIPE.length)).join('');
+  document.getElementById('pipeR').innerHTML = PIPE.slice(half).map((s,i,a) => mkStep(s, i===a.length-1)).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  IR SCENARIOS
+// ═══════════════════════════════════════════════════════════
+const IRA = [
+  {title:'SIEM alert — impossible travel',action:'SIEM fires impossible travel alert: user authenticated from London 20 minutes ago, new login attempt from a foreign country now. The risk engine has already automatically blocked the new session and flagged the account.',why:'Impossible travel is a definitive signal of credential theft — no legitimate user can be in two countries simultaneously.'},
+  {title:'Identify the compromised credential',action:'Review the IdP sign-in logs: first login (London) — MFA passed via TOTP. Second attempt (foreign country) — MFA challenged but failed 3 times, then attacker tried push notification (MFA fatigue). The password was successfully phished.',why:'Understanding which authentication factor was bypassed determines the remediation path and what controls need strengthening.'},
+  {title:'Assess what was accessed in the first session',action:'Query SIEM for all access tokens issued to this user in the past 24 hours. Review ZTNA access logs, SWG web logs, and CASB SaaS events. Determine what resources were accessed, for how long, and what data was touched.',why:'Scope assessment determines whether a data breach occurred and which systems need forensic investigation.'},
+  {title:'Contain — revoke all active tokens',action:'The Policy Administrator revokes all active tokens for this identity immediately. SOAR playbook is triggered: disables the account in the IdP, logs the user out of all active SaaS sessions via CASB, and blocks the attacker\'s known IP in SWG and NGFW.',why:'Token revocation is the Zero Trust equivalent of blocking a compromised access card — every active session is terminated immediately without waiting for expiry.'},
+  {title:'Force MFA credential reset',action:'Security team contacts user via out-of-band channel (phone). Confirms the user did not travel. Initiates MFA re-enrollment — TOTP codes invalidated, all trusted devices removed from IdP. Re-enrolment requires FIDO2 hardware token, not TOTP.',why:'The compromised TOTP factor must be replaced with a phishing-resistant factor to prevent the same attack vector being reused.'},
+  {title:'Investigate the phishing vector',action:'Retrieve the phishing email that delivered the credential-harvesting link from the email security gateway logs. Extract IOCs: domain, IP, hosting provider. Check CASB logs for the phishing URL. Push IOCs to threat intelligence feeds and block lists.',why:'Understanding and documenting the delivery mechanism improves detection for future phishing campaigns using the same infrastructure.'},
+  {title:'Review access policies for the compromised identity',action:'Audit the user\'s access policy: were they over-privileged? Did the risk engine respond correctly (it did — it blocked session 2). Determine whether microsegmentation prevented the attacker from moving laterally during session 1.',why:'Post-incident policy review ensures the architecture performed as designed and identifies any gaps to address before re-enabling access.'},
+  {title:'Re-enable access with enhanced controls',action:'Re-enable the user account. Apply a mandatory FIDO2 requirement for this user (step above TOTP for their role). Add temporary enhanced logging — every access request reviewed by Tier 2 for 30 days. Notify compliance team if regulated data was accessed.',why:'Re-enabling with stronger controls ensures business continuity while reducing the risk of the same credential compromise succeeding again.'},
+];
+
+const IRB = [
+  {title:'UEBA anomaly — bulk download',action:'UEBA detects that the user has downloaded 8GB of files from SharePoint in the past 48 hours — 15× their 90-day baseline. A second anomaly: the user has accessed three systems they have never accessed before and have no documented business need for.',why:'Statistical deviation from established baseline is the earliest signal of insider data theft — often detectable days before any manual review would catch it.'},
+  {title:'Cross-reference HR departure data',action:'SOAR playbook queries the HR system API: the user\'s departure date is in 9 days. This context escalates the UEBA anomaly from "investigate" to "immediate action" — departing employees are at highest risk for data exfiltration.',why:'HR departure data is a critical risk context signal — Zero Trust architectures should automatically increase monitoring and restrict access as departure dates approach.'},
+  {title:'Map all accessed resources',action:'Query ZTNA logs, CASB logs, and PAM session records for this user over the past 30 days. Build a complete resource access timeline. Identify any resources accessed that are outside the user\'s documented job function — these are policy violations regardless of whether the user had inherited permissions.',why:'Access outside job function on a departing employee is evidence of deliberate data collection rather than normal work activity.'},
+  {title:'Apply enhanced DLP controls',action:'SOAR escalates DLP policy for this user: all outbound email attachments blocked pending review; all USB storage blocked; all uploads to personal cloud storage blocked via CASB; all print jobs logged and flagged for security review.',why:'Closing the exfiltration channels before confronting the user prevents evidence destruction and reduces the amount of data that can be removed.'},
+  {title:'Restrict access to least-privilege scope',action:'Security and HR team agree to reduce the user\'s access to only the systems they need for their remaining 9 days of work. All access to the three anomalous systems is revoked. Privileged access (if any) is immediately terminated. All remaining access set to read-only.',why:'Least-privilege enforcement limits the blast radius of any further exfiltration attempts while preserving the user\'s ability to complete legitimate handover work.'},
+  {title:'Legal hold and forensic preservation',action:'Legal team places an eDiscovery hold on the user\'s mailbox, SharePoint files, and OneDrive. Forensic team captures a memory image and disk forensic copy of the user\'s corporate laptop. All logs are exported to a secure, write-once evidence store.',why:'Preserving evidence in admissible form is essential if the incident escalates to disciplinary action, civil litigation, or criminal prosecution.'},
+  {title:'Escalate to HR, Legal, and management',action:'Notify HR, Legal, and the user\'s line manager with a documented summary of findings: what was accessed, what was downloaded, what systems were accessed outside normal scope, and what timeline the activity followed.',why:'Insider threat incidents require coordinated response across security, HR, and legal — security cannot act unilaterally beyond technical controls without business and legal sign-off.'},
+  {title:'Post-incident — tighten departure controls',action:'Review the entire departure process: implement automatic access restriction at departure date -30, -14, and -7 day trigger points; automate PAM JIT revocation for departing users; add HR departure feed to UEBA risk context. Conduct lessons-learned session.',why:'Insider threat via departing employee is a predictable, repeated scenario — the architecture should automatically reduce access as departure date approaches, requiring no human decision.'},
+];
+
+function renderIR() {
+  const mk = (s, which, i) => `<div class="ir-step" onclick="toggleStep(this)">
+    <div class="ir-step-n">${i+1}</div>
+    <div class="ir-step-body">
+      <div class="ir-step-title">${s.title}</div>
+      <div class="ir-step-action">${s.action}</div>
+      <div class="ir-step-why">Why: ${s.why}</div>
+    </div></div>`;
+  document.getElementById('irA').innerHTML = IRA.map((s,i)=>mk(s,'a',i)).join('');
+  document.getElementById('irB').innerHTML = IRB.map((s,i)=>mk(s,'b',i)).join('');
+}
+
+function toggleStep(el) {
+  el.classList.toggle('active');
+  el.querySelector('.ir-step-n').classList.toggle('done');
+}
+let irT={a:null,b:null};
+function runIR(w){
+  resetIR(w);
+  const steps=document.querySelectorAll(`#ir${w.toUpperCase()} .ir-step`);
+  let i=0;
+  function step(){
+    if(i>0)steps[i-1].querySelector('.ir-step-n').classList.add('done');
+    if(i>=steps.length)return;
+    steps[i].classList.add('active');steps[i].querySelector('.ir-step-n').classList.add('done');
+    steps[i].scrollIntoView({behavior:'smooth',block:'nearest'});
+    i++;irT[w]=setTimeout(step,1100);
+  }
+  step();
+}
+function resetIR(w){
+  if(irT[w])clearTimeout(irT[w]);
+  document.querySelectorAll(`#ir${w.toUpperCase()} .ir-step`).forEach(el=>{el.classList.remove('active');el.querySelector('.ir-step-n').classList.remove('done');});
+}
+function switchScenario(w,btn){
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.scenario-body').forEach(b=>b.classList.remove('show'));
+  document.getElementById('sc-'+w).classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUICK REFERENCE
+// ═══════════════════════════════════════════════════════════
+const QREF = [
+  {title:'Key standards & frameworks',color:'var(--purple)',items:[
+    ['NIST SP 800-207','Zero Trust Architecture (definitive reference)'],
+    ['NIST SP 800-63B','Digital Identity Guidelines — MFA requirements'],
+    ['CISA ZT Maturity','5-pillar maturity model for ZT adoption'],
+    ['DoD ZT Reference','Enterprise ZT strategy and pillars'],
+    ['NCSC ZT Guidance','UK government ZT design principles'],
+  ]},
+  {title:'NIST ZT five pillars',color:'var(--blue2)',items:[
+    ['Identity','Verify every user and workload explicitly'],
+    ['Devices','Assess and enforce device posture'],
+    ['Networks','Segment and inspect all traffic'],
+    ['Applications','Secure and control app access'],
+    ['Data','Classify, label, and protect data at the resource level'],
+  ]},
+  {title:'Token & session parameters',color:'var(--amber2)',items:[
+    ['Access token TTL','15–60 min (resource sensitivity dependent)'],
+    ['Refresh token TTL','1–24 hrs with continuous validation'],
+    ['PAM JIT window','30 min – 4 hrs (use case dependent)'],
+    ['MFA re-auth trigger','Risk score delta > threshold'],
+    ['Compliance check interval','Every authentication + MDM push events'],
+  ]},
+  {title:'Maturity levels',color:'var(--green2)',items:[
+    ['Level 1 — Traditional','Perimeter-based, implicit internal trust'],
+    ['Level 2 — Initial ZT','IdP + MFA + basic conditional access'],
+    ['Level 3 — Advanced ZT','ZTNA + microsegmentation + UEBA'],
+    ['Level 4 — Optimal ZT','Continuous validation + full automation'],
+    ['CISA targets Level 3+','For most federal agencies'],
+  ]},
+  {title:'Key MITRE ATT&CK techniques ZT mitigates',color:'var(--red2)',items:[
+    ['T1078 — Valid accounts','MFA + UEBA anomaly detection'],
+    ['T1021 — Lateral movement','Microsegmentation + default deny'],
+    ['T1552 — Unsecured credentials','Secrets management + rotation'],
+    ['T1199 — Trusted relationship','Partner access scoping + JIT'],
+    ['T1078.004 — Cloud accounts','Workload identity + MFA'],
+  ]},
+];
+
+function renderQRef(){
+  document.getElementById('qrefGrid').innerHTML=QREF.map(q=>`
+    <div class="qref-card">
+      <div class="qref-hd"><div class="qref-hd-dot" style="background:${q.color};"></div><div class="qref-hd-title" style="color:${q.color};">${q.title}</div></div>
+      <div class="qref-body">${q.items.map(([k,v])=>`<div class="qref-item"><span class="qref-key">${k}</span><span class="qref-val">${v}</span></div>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SCROLL REVEAL
+// ═══════════════════════════════════════════════════════════
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});},{threshold:.06});
+document.querySelectorAll('.rv').forEach(el=>ro.observe(el));
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+renderPrinciples();
+renderPipeline();
+renderIR();
+renderQRef();
+setTimeout(()=>document.querySelectorAll('.rv').forEach(el=>ro.observe(el)),200);
+</script>
+</body>
+</html>
