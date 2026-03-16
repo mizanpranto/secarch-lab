@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Security Architecture · SecArch Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F; --bg2:#0B0E17; --bg3:#0F1320;
+  --card:#0D1119; --card2:#111827; --card3:#141D2B;
+  --border:#1A2235; --border2:#1F2D45; --border3:#263554;
+  --blue:#3B82F6; --blue2:#60A5FA; --blue-dim:#1E3A5F; --blue-faint:rgba(59,130,246,.06);
+  --cyan:#22D3EE; --green:#10B981; --green-dim:#064E3B; --green2:#34D399;
+  --amber:#F59E0B; --amber-dim:#78350F; --amber2:#FCD34D;
+  --red:#EF4444; --red-dim:#7F1D1D; --red2:#FCA5A5;
+  --purple:#A78BFA; --purple-dim:#3730A3; --teal:#2DD4BF;
+  --orange:#F97316; --pink:#F472B6;
+  --text:#E2E8F0; --text2:#8B9DB5; --text3:#3D5066; --text4:#2A3A50;
+  --display:'Syne',sans-serif; --body:'DM Sans',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.6;overflow-x:hidden;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:54px;display:flex;align-items:center;padding:0 32px;gap:16px;background:rgba(7,9,15,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-back{display:flex;align-items:center;gap:7px;text-decoration:none;font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:.04em;padding:5px 10px;border:1px solid var(--border);border-radius:5px;transition:all .15s;}
+.nav-back:hover{border-color:var(--blue);color:var(--blue);}
+.nav-sep{color:var(--text4);font-size:12px;}
+.nav-crumb{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.04em;}
+.nav-title{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);margin-left:4px;}
+.nav-track{margin-left:auto;font-family:var(--mono);font-size:9.5px;padding:3px 10px;border-radius:3px;background:var(--blue-dim);border:1px solid rgba(59,130,246,.3);color:var(--blue2);letter-spacing:.06em;}
+
+/* ── HERO ── */
+.hero{position:relative;z-index:1;padding:100px 40px 60px;max-width:1200px;margin:0 auto;}
+.hero-eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.18em;text-transform:uppercase;margin-bottom:20px;}
+.hero-eyebrow-line{width:24px;height:1px;background:var(--border2);}
+.hero-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue);animation:pulse 1.5s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.4);}}
+.hero-title{font-family:var(--display);font-size:clamp(36px,5vw,60px);font-weight:800;line-height:1.0;letter-spacing:-.03em;margin-bottom:14px;}
+.hero-title .hl{-webkit-text-stroke:1px var(--blue);-webkit-text-fill-color:transparent;}
+.hero-desc{font-size:16px;color:var(--text2);line-height:1.8;max-width:680px;font-weight:300;margin-bottom:32px;}
+.hero-stats{display:flex;gap:0;flex-wrap:wrap;}
+.hstat{padding:14px 24px;border:1px solid var(--border);background:var(--card);text-align:center;margin-right:-1px;margin-bottom:-1px;}
+.hstat:first-child{border-radius:8px 0 0 8px;}
+.hstat:last-child{border-radius:0 8px 8px 0;}
+.hstat-n{font-family:var(--display);font-size:24px;font-weight:800;color:var(--text);line-height:1;}
+.hstat-n.blue{color:var(--blue2);}
+.hstat-n.green{color:var(--green);}
+.hstat-n.amber{color:var(--amber);}
+.hstat-n.red{color:var(--red);}
+.hstat-l{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-top:3px;text-transform:uppercase;}
+
+/* ── SECTION SHARED ── */
+.sec{position:relative;z-index:1;padding:60px 40px;}
+.sec-inner{max-width:1200px;margin:0 auto;}
+.sec-hd{margin-bottom:32px;}
+.eyebrow{font-family:var(--mono);font-size:9.5px;color:var(--blue);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.eyebrow::before{content:'';width:16px;height:1px;background:var(--blue);}
+.sec-title{font-family:var(--display);font-size:clamp(22px,3vw,32px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
+.sec-title .hl{color:var(--blue2);}
+.sec-desc{font-size:14px;color:var(--text2);max-width:600px;margin-top:8px;line-height:1.7;font-weight:300;}
+.divider{border:none;border-top:1px solid var(--border);margin:0;}
+
+/* ── CONTROLS BAR ── */
+.ctrl-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;}
+.cbtn{font-family:var(--mono);font-size:11px;padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+.cbtn:hover{border-color:var(--border2);color:var(--text);}
+.cbtn.go{background:var(--blue);border-color:var(--blue);color:#fff;}
+.cbtn.go:hover{background:#2563EB;}
+.cbtn.go-green{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.cbtn.go-green:hover{background:var(--green);color:#fff;}
+.cbtn.go-red{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.cbtn.go-red:hover{background:var(--red);color:#fff;}
+.cbtn.go-amber{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.ctrl-hint{font-family:var(--mono);font-size:10px;color:var(--text4);margin-left:auto;}
+
+/* ── ARCHITECTURE ZONES ── */
+.arch-wrap{display:flex;flex-direction:column;gap:4px;}
+.zone{border-radius:10px;border:1px solid;overflow:hidden;transition:border-color .2s;}
+.zone-hd{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.04);}
+.zone-lbl{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;}
+.zone-tag{font-family:var(--mono);font-size:9px;opacity:.5;letter-spacing:.06em;}
+.zone-body{padding:8px 10px;}
+.comp-row{display:flex;gap:6px;flex-wrap:wrap;}
+.comp{flex:1;min-width:100px;border-radius:7px;padding:9px 8px;cursor:pointer;border:1px solid transparent;transition:transform .1s,outline .12s,background .12s;text-align:center;position:relative;}
+.comp:hover{transform:translateY(-1px);}
+.comp.lit{outline:2px solid var(--blue);outline-offset:2px;}
+.comp.lit-green{outline:2px solid var(--green);outline-offset:2px;}
+.comp.lit-red{outline:2px solid var(--red);outline-offset:2px;}
+.comp.lit-amber{outline:2px solid var(--amber);outline-offset:2px;}
+.comp-title{font-size:11px;font-weight:500;line-height:1.3;font-family:var(--body);}
+.comp-sub{font-size:9.5px;opacity:.55;line-height:1.3;margin-top:2px;font-family:var(--mono);}
+/* Zone themes */
+.z-ext{background:#0A0D14;border-color:var(--border);}
+.z-ext .zone-lbl{color:var(--text3);}
+.z-ext .comp{background:#0F1320;border-color:var(--border);color:var(--text);}
+.z-ext .comp:hover{background:#141D2B;}
+.z-gw{background:#07112A;border-color:rgba(59,130,246,.25);}
+.z-gw .zone-lbl{color:var(--blue);}
+.comp-gw{background:#0C1E40;border-color:rgba(59,130,246,.15);color:var(--text);}
+.comp-gw:hover{background:#102248!important;}
+.comp-gw-core{background:#1E3A5F;border-color:var(--blue);color:var(--text);}
+.comp-gw-core:hover{background:#264872!important;}
+.z-verdict .zone-lbl{color:var(--text2);}
+.v-block{background:#1A0A0A;border-color:rgba(239,68,68,.25);color:var(--text);border-radius:7px;flex:1;padding:9px 8px;cursor:pointer;border:1px solid;transition:all .12s;text-align:center;}
+.v-block:hover{border-color:var(--red);transform:translateY(-1px);}
+.v-quar{background:#1A120A;border-color:rgba(245,158,11,.25);color:var(--text);border-radius:7px;flex:1;padding:9px 8px;cursor:pointer;border:1px solid;transition:all .12s;text-align:center;}
+.v-quar:hover{border-color:var(--amber);transform:translateY(-1px);}
+.v-deliver{background:#0A1A0F;border-color:rgba(16,185,129,.25);color:var(--text);border-radius:7px;flex:1;padding:9px 8px;cursor:pointer;border:1px solid;transition:all .12s;text-align:center;}
+.v-deliver:hover{border-color:var(--green);transform:translateY(-1px);}
+.z-int{background:#0A0E1A;border-color:rgba(245,158,11,.2);}
+.z-int .zone-lbl{color:var(--amber);}
+.comp-int{background:#14180E;border-color:rgba(245,158,11,.12);color:var(--text);}
+.comp-int:hover{background:#1A1E12!important;}
+.z-mon{background:#0D0A1A;border-color:rgba(167,139,250,.2);}
+.z-mon .zone-lbl{color:var(--purple);}
+.comp-mon{background:#130F26;border-color:rgba(167,139,250,.12);color:var(--text);}
+.comp-mon:hover{background:#181328!important;}
+/* Arrows between zones */
+.zone-arr{text-align:center;padding:3px 0;display:flex;align-items:center;justify-content:center;gap:24px;font-family:var(--mono);font-size:10.5px;color:var(--text4);}
+.za-green{color:var(--green-dim);}
+.za-red{color:var(--red-dim);}
+.za-amber{color:var(--amber-dim);}
+.feedback-row{text-align:center;padding:5px 0;border-top:1px dashed var(--border);margin-top:4px;font-family:var(--mono);font-size:9.5px;color:var(--text4);letter-spacing:.06em;}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{border:1px solid var(--border2);border-radius:12px;background:var(--card);padding:20px 22px;margin-top:14px;min-height:100px;transition:all .2s;}
+.dp-zone{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.dp-title{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px;}
+.dp-sub{font-family:var(--mono);font-size:10.5px;color:var(--text3);margin-bottom:12px;}
+.dp-desc{font-size:13.5px;color:var(--text2);line-height:1.75;font-weight:300;margin-bottom:14px;}
+.dp-points{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.dp-points li{display:flex;gap:8px;font-size:12.5px;color:var(--text2);line-height:1.5;}
+.dp-points li::before{content:'▸';color:var(--blue);opacity:.6;flex-shrink:0;margin-top:2px;}
+.dp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px;}
+.dp-tag{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);color:var(--text3);}
+.dp-placeholder{color:var(--text3);font-family:var(--mono);font-size:11.5px;text-align:center;padding:24px;}
+
+/* ── AUTH SECTION ── */
+.auth-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.auth-card{border-radius:12px;overflow:hidden;border:1px solid;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.auth-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.auth-hd{padding:16px 18px 12px;}
+.auth-protocol{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.02em;}
+.auth-full{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;margin-top:2px;opacity:.7;}
+.auth-body{padding:0 18px 16px;font-size:12.5px;color:var(--text2);line-height:1.65;font-weight:300;}
+.auth-steps{padding:0 18px 16px;}
+.auth-step{display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:var(--text2);}
+.auth-step-num{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;font-weight:600;flex-shrink:0;margin-top:1px;}
+.auth-verdict{margin:10px 18px 16px;padding:8px 12px;border-radius:5px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;}
+/* SPF */
+.ac-spf{background:#071A0D;border-color:rgba(16,185,129,.3);}
+.ac-spf .auth-hd{background:rgba(16,185,129,.08);}
+.ac-spf .auth-protocol{color:var(--green);}
+.ac-spf .auth-full{color:var(--green);}
+.ac-spf .auth-step-num{background:rgba(16,185,129,.15);color:var(--green);}
+.ac-spf .auth-verdict{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green2);}
+/* DKIM */
+.ac-dkim{background:#071020;border-color:rgba(59,130,246,.3);}
+.ac-dkim .auth-hd{background:rgba(59,130,246,.08);}
+.ac-dkim .auth-protocol{color:var(--blue2);}
+.ac-dkim .auth-full{color:var(--blue2);}
+.ac-dkim .auth-step-num{background:rgba(59,130,246,.15);color:var(--blue2);}
+.ac-dkim .auth-verdict{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);color:var(--blue2);}
+/* DMARC */
+.ac-dmarc{background:#1A0A1A;border-color:rgba(167,139,250,.3);}
+.ac-dmarc .auth-hd{background:rgba(167,139,250,.08);}
+.ac-dmarc .auth-protocol{color:var(--purple);}
+.ac-dmarc .auth-full{color:var(--purple);}
+.ac-dmarc .auth-step-num{background:rgba(167,139,250,.15);color:var(--purple);}
+.ac-dmarc .auth-verdict{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--purple);}
+/* Policy table */
+.policy-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:16px;}
+.policy-table th{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--card);}
+.policy-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.5;}
+.policy-table tr:last-child td{border-bottom:none;}
+.policy-table tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+.policy-table td:first-child{font-family:var(--mono);font-size:11px;font-weight:500;}
+.ptag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:3px;margin-right:4px;border:1px solid;}
+.ptag-none{background:rgba(71,85,105,.1);border-color:var(--border2);color:var(--text3);}
+.ptag-quar{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber);}
+.ptag-rej{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red);}
+.ptag-pass{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--green);}
+
+/* ── THREAT MATRIX ── */
+.threat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;}
+.threat-card{border-radius:10px;border:1px solid var(--border);background:var(--card);padding:14px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.threat-card:hover{transform:translateY(-2px);border-color:var(--border2);}
+.threat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.tc-crit::before{background:var(--red);}
+.tc-high::before{background:var(--orange);}
+.tc-med::before{background:var(--amber);}
+.threat-icon{font-size:22px;margin-bottom:8px;display:block;}
+.threat-name{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.2;}
+.threat-mech{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px;}
+.threat-badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;padding:2px 8px;border-radius:3px;border:1px solid;letter-spacing:.04em;}
+.tb-crit{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red);}
+.tb-high{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.2);color:var(--orange);}
+.tb-med{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber);}
+/* Threat detail */
+.threat-detail{margin-top:14px;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:18px 20px;display:none;}
+.threat-detail.show{display:block;}
+.td-name{font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:4px;}
+.td-desc{font-size:13px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:12px;}
+.td-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.td-col h4{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.td-col ul{list-style:none;}
+.td-col ul li{font-size:11.5px;color:var(--text2);padding:2px 0;display:flex;gap:5px;line-height:1.45;}
+.td-col ul li::before{content:'·';color:var(--text3);}
+
+/* ── PIPELINE ── */
+.pipeline{display:flex;flex-direction:column;gap:0;}
+.pipe-step{display:flex;gap:16px;align-items:stretch;cursor:pointer;}
+.pipe-step:hover .ps-box{border-color:var(--border2);background:var(--card2);}
+.ps-left{display:flex;flex-direction:column;align-items:center;width:48px;flex-shrink:0;}
+.ps-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:14px;font-weight:700;flex-shrink:0;border:1px solid;z-index:1;}
+.ps-line{width:1px;flex:1;margin:2px 0;min-height:16px;}
+.ps-box{flex:1;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:6px;transition:all .15s;background:var(--card);}
+.ps-title{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:3px;}
+.ps-sub{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:.03em;}
+.ps-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;}
+.ps-output{margin-top:8px;display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:3px;border:1px solid;}
+/* Step colors */
+.step-blue .ps-num{background:rgba(59,130,246,.1);border-color:var(--blue);color:var(--blue2);}
+.step-blue .ps-line{background:linear-gradient(var(--blue),rgba(59,130,246,.1));}
+.step-blue .ps-title{color:var(--blue2);}
+.step-blue .ps-output{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2);color:var(--blue2);}
+.step-green .ps-num{background:rgba(16,185,129,.1);border-color:var(--green);color:var(--green);}
+.step-green .ps-line{background:linear-gradient(var(--green),rgba(16,185,129,.1));}
+.step-green .ps-title{color:var(--green);}
+.step-green .ps-output{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.2);color:var(--green);}
+.step-amber .ps-num{background:rgba(245,158,11,.1);border-color:var(--amber);color:var(--amber);}
+.step-amber .ps-line{background:linear-gradient(var(--amber),rgba(245,158,11,.1));}
+.step-amber .ps-title{color:var(--amber);}
+.step-amber .ps-output{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2);color:var(--amber);}
+.step-red .ps-num{background:rgba(239,68,68,.1);border-color:var(--red);color:var(--red);}
+.step-red .ps-line{background:linear-gradient(var(--red),rgba(239,68,68,.1));}
+.step-red .ps-title{color:var(--red);}
+.step-red .ps-output{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2);color:var(--red);}
+.step-purple .ps-num{background:rgba(167,139,250,.1);border-color:var(--purple);color:var(--purple);}
+.step-purple .ps-line{background:linear-gradient(var(--purple),rgba(167,139,250,.1));}
+.step-purple .ps-title{color:var(--purple);}
+.step-purple .ps-output{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.2);color:var(--purple);}
+
+/* ── LOGS TABLE ── */
+.log-table{width:100%;border-collapse:collapse;font-size:13px;}
+.log-table th{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;background:var(--card);}
+.log-table td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;}
+.log-table tr:last-child td{border-bottom:none;}
+.log-table tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+.log-table td:first-child{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--blue2);white-space:nowrap;}
+.log-table td:nth-child(2){color:var(--text2);font-size:12.5px;}
+.log-table td:nth-child(3){color:var(--text2);font-size:11.5px;}
+.log-table td:last-child{font-family:var(--mono);font-size:10.5px;}
+.ltag{display:inline-block;padding:1px 7px;border-radius:3px;font-family:var(--mono);font-size:9px;border:1px solid;margin:1px 2px;}
+.ltag-soc{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.2);color:var(--blue2);}
+.ltag-ir{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red);}
+.ltag-comp{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--green);}
+.ltag-hunt{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.2);color:var(--purple);}
+.sev-field{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:3px;border:1px solid;}
+.sev-c{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red);}
+.sev-h{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.2);color:var(--orange);}
+.sev-m{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber);}
+.sev-l{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--green);}
+
+/* ── IR SCENARIOS ── */
+.scenario-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.stab{flex:1;padding:12px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;border-right:1px solid var(--border);}
+.stab:last-child{border-right:none;}
+.stab:hover{background:var(--card);color:var(--text);}
+.stab.on{background:var(--blue-dim);color:var(--blue2);border-bottom:2px solid var(--blue);}
+.scenario-body{display:none;}
+.scenario-body.show{display:block;}
+.scenario-desc{font-size:14px;color:var(--text2);line-height:1.75;font-weight:300;margin-bottom:20px;padding:14px 16px;border-left:2px solid var(--border2);background:var(--card);}
+.scenario-desc strong{color:var(--text);font-weight:500;}
+.ir-steps{display:flex;flex-direction:column;gap:8px;}
+.ir-step{display:flex;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;transition:all .15s;}
+.ir-step:hover{border-color:var(--border2);}
+.ir-step.active{border-color:var(--blue);background:rgba(59,130,246,.04);}
+.ir-step-n{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;flex-shrink:0;background:var(--blue-dim);border:1px solid var(--blue);color:var(--blue2);}
+.ir-step-n.done{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.ir-step-body{flex:1;}
+.ir-step-title{font-size:13px;font-weight:500;margin-bottom:3px;font-family:var(--display);}
+.ir-step-action{font-size:12px;color:var(--text2);line-height:1.55;font-weight:300;}
+.ir-step-why{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:5px;padding:4px 8px;border-radius:3px;border:1px solid var(--border);display:inline-block;}
+/* IR run btn */
+.ir-run-wrap{margin-top:14px;}
+
+/* ── VENDOR SECTION ── */
+.vendor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.vendor-card{border:1px solid var(--border);border-radius:9px;padding:14px;background:var(--card);transition:all .15s;cursor:default;}
+.vendor-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.vendor-rank{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:6px;}
+.vendor-name{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:3px;}
+.vendor-product{font-size:11px;color:var(--text2);margin-bottom:8px;font-family:var(--mono);}
+.vendor-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.vtag{font-family:var(--mono);font-size:8.5px;padding:1px 6px;border-radius:3px;border:1px solid var(--border2);color:var(--text3);}
+
+/* ── QUICK REF ── */
+.qref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+.qref-card{border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden;}
+.qref-hd{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.qref-hd-dot{width:7px;height:7px;border-radius:50%;}
+.qref-hd-title{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;}
+.qref-body{padding:10px 14px;}
+.qref-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px;}
+.qref-item:last-child{border-bottom:none;}
+.qref-key{color:var(--text2);}
+.qref-val{font-family:var(--mono);font-size:10.5px;color:var(--text3);}
+
+/* ── FOOTER ── */
+footer{position:relative;z-index:1;padding:32px 40px;border-top:1px solid var(--border);background:var(--bg2);}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-back{display:flex;align-items:center;gap:7px;text-decoration:none;font-family:var(--mono);font-size:11px;color:var(--text2);padding:7px 14px;border:1px solid var(--border);border-radius:5px;transition:all .15s;}
+.footer-back:hover{border-color:var(--blue);color:var(--blue);}
+.footer-meta{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* ── REVEAL ── */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .4s ease,transform .4s ease;}
+.rv.in{opacity:1;transform:translateY(0);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:800px){
+  nav{padding:0 16px;}.hero{padding:90px 16px 40px;}.sec{padding:40px 16px;}
+  .hero-stats{flex-wrap:wrap;}.hstat{flex:1;min-width:100px;border-radius:0;}
+  .auth-grid{grid-template-columns:1fr;}.td-cols{grid-template-columns:1fr;}
+  footer{padding:24px 16px;}.vendor-grid{grid-template-columns:repeat(2,1fr);}
+  .ctrl-hint{display:none;}
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.hero>*{animation:fadeIn .5s ease both;}
+.hero-eyebrow{animation-delay:.05s;}.hero-title{animation-delay:.1s;}.hero-desc{animation-delay:.15s;}.hero-stats{animation-delay:.2s;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-back">← Library</a>
+  <span class="nav-sep">/</span>
+  <span class="nav-crumb">Track A</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-title">Email Security Architecture</span>
+  <div class="nav-track">TRACK A · 01</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <div class="hero-eyebrow-line"></div>
+    <div class="hero-eyebrow-dot"></div>
+    Security Architecture · Track A
+    <div class="hero-eyebrow-line"></div>
+  </div>
+  <h1 class="hero-title">Email Security<br><span class="hl">Architecture</span></h1>
+  <p class="hero-desc">
+    A complete interactive reference covering the full email security stack —
+    from SMTP connection filtering and SPF/DKIM/DMARC authentication through
+    ATP sandboxing, DLP enforcement, SIEM integration, and incident response.
+    Click any component to explore it in depth.
+  </p>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-n blue">7</div><div class="hstat-l">Threat types</div></div>
+    <div class="hstat"><div class="hstat-n">9</div><div class="hstat-l">Processing stages</div></div>
+    <div class="hstat"><div class="hstat-n green">3</div><div class="hstat-l">Auth protocols</div></div>
+    <div class="hstat"><div class="hstat-n amber">6</div><div class="hstat-l">Log types</div></div>
+    <div class="hstat"><div class="hstat-n red">2</div><div class="hstat-l">IR scenarios</div></div>
+    <div class="hstat"><div class="hstat-n">10</div><div class="hstat-l">Top vendors</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ── SECTION 1: ARCHITECTURE ── -->
+<section class="sec" id="architecture">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 1</div>
+      <h2 class="sec-title">Full <span class="hl">Architecture Diagram</span></h2>
+      <p class="sec-desc">Five security zones from external internet through gateway inspection, policy decisions, internal delivery, and continuous monitoring. Click any component for a detailed explanation, or use the trace buttons to animate a message flow.</p>
+    </div>
+
+    <div class="ctrl-bar rv">
+      <button class="cbtn go" onclick="traceFlow('inbound')">▶ Trace inbound email</button>
+      <button class="cbtn go-green" onclick="traceFlow('outbound')">▶ Trace outbound email</button>
+      <button class="cbtn go-red" onclick="traceFlow('phishing')">▶ Simulate phishing attack</button>
+      <button class="cbtn go-amber" onclick="traceFlow('malware')">▶ Simulate malware delivery</button>
+      <button class="cbtn" onclick="resetArch()">↺ Reset</button>
+      <span class="ctrl-hint">Click any component for details</span>
+    </div>
+
+    <div class="arch-wrap rv">
+
+      <!-- Zone 1: External -->
+      <div class="zone z-ext" id="zone-ext">
+        <div class="zone-hd"><span class="zone-lbl">Zone 1 — External / Internet</span><span class="zone-tag">All senders treated as untrusted</span></div>
+        <div class="zone-body">
+          <div class="comp-row">
+            <div class="comp z-ext-comp" id="c-internet" onclick="showComp('internet')"><div class="comp-title">Internet senders</div><div class="comp-sub">All external mail origins</div></div>
+            <div class="comp z-ext-comp" id="c-dns" onclick="showComp('dns')"><div class="comp-title">DNS / MX records</div><div class="comp-sub">Routing & auth lookups</div></div>
+            <div class="comp z-ext-comp" id="c-legit" onclick="showComp('legit')"><div class="comp-title">Legitimate senders</div><div class="comp-sub">Partners, SaaS, newsletters</div></div>
+            <div class="comp z-ext-comp" id="c-threats" onclick="showComp('threats')" style="border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04);"><div class="comp-title" style="color:var(--red2);">Threat actors</div><div class="comp-sub">Phishing · BEC · Malware</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arr">↓ &nbsp;SMTP connection (port 25 / 587) — all traffic enters here</div>
+
+      <!-- Zone 2: Gateway -->
+      <div class="zone z-gw" id="zone-gw">
+        <div class="zone-hd"><span class="zone-lbl">Zone 2 — Email Security Gateway</span><span class="zone-tag">Primary inspection layer · All inbound & outbound traffic passes through</span></div>
+        <div class="zone-body" style="display:flex;flex-direction:column;gap:6px;">
+          <!-- Row 1: Connection + Auth -->
+          <div class="comp-row">
+            <div class="comp comp-gw" id="c-conn" onclick="showComp('conn')"><div class="comp-title">Connection filter</div><div class="comp-sub">IP rep · TLS · Rate limit</div></div>
+            <div class="comp comp-gw" id="c-spf" onclick="showComp('spf')"><div class="comp-title">SPF check</div><div class="comp-sub">Sender IP authorisation</div></div>
+            <div class="comp comp-gw" id="c-dkim" onclick="showComp('dkim')"><div class="comp-title">DKIM verify</div><div class="comp-sub">Signature integrity</div></div>
+            <div class="comp comp-gw" id="c-dmarc" onclick="showComp('dmarc')"><div class="comp-title">DMARC policy</div><div class="comp-sub">Auth enforcement</div></div>
+          </div>
+          <!-- Row 2: Scanning -->
+          <div class="comp-row">
+            <div class="comp comp-gw" id="c-av" onclick="showComp('av')"><div class="comp-title">Antivirus scan</div><div class="comp-sub">Signatures & hashes</div></div>
+            <div class="comp comp-gw" id="c-atp" onclick="showComp('atp')"><div class="comp-title">ATP sandbox</div><div class="comp-sub">Detonation & analysis</div></div>
+            <div class="comp comp-gw" id="c-url" onclick="showComp('url')"><div class="comp-title">URL rewriting</div><div class="comp-sub">Click-time protection</div></div>
+            <div class="comp comp-gw" id="c-nlp" onclick="showComp('nlp')"><div class="comp-title">NLP / heuristics</div><div class="comp-sub">Social engineering detect</div></div>
+          </div>
+          <!-- Row 3: DLP + Policy -->
+          <div class="comp-row">
+            <div class="comp comp-gw" id="c-dlp" onclick="showComp('dlp')" style="flex:2;"><div class="comp-title">DLP — outbound scanning</div><div class="comp-sub">PII · financial data · IP detection</div></div>
+            <div class="comp comp-gw-core" id="c-policy" onclick="showComp('policy')" style="flex:2;"><div class="comp-title">Policy engine</div><div class="comp-sub">Aggregates all verdicts → routing decision</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verdict row -->
+      <div class="zone z-ext" id="zone-verdict" style="background:transparent;border-color:transparent;">
+        <div class="zone-hd" style="background:transparent;border:none;padding:4px 0;"><span class="zone-lbl">Policy engine outputs one of three verdicts</span></div>
+        <div class="zone-body" style="padding:0;">
+          <div class="comp-row">
+            <div class="v-block" id="c-block" onclick="showComp('block')"><div class="comp-title" style="color:var(--red);">Blocked</div><div class="comp-sub" style="color:var(--text3);">SMTP reject / silent drop</div></div>
+            <div class="v-quar" id="c-quar" onclick="showComp('quar')"><div class="comp-title" style="color:var(--amber);">Quarantine</div><div class="comp-sub" style="color:var(--text3);">Admin / user review queue</div></div>
+            <div class="v-deliver" id="c-deliver" onclick="showComp('deliver')"><div class="comp-title" style="color:var(--green);">Delivered</div><div class="comp-sub" style="color:var(--text3);">Clean — forwarded to mail server</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arr">↓ &nbsp;Delivered messages only</div>
+
+      <!-- Zone 3: Internal -->
+      <div class="zone z-int" id="zone-int">
+        <div class="zone-hd"><span class="zone-lbl">Zone 3 — Internal Infrastructure</span><span class="zone-tag">Only reachable via the gateway — no direct internet access to mail server</span></div>
+        <div class="zone-body">
+          <div class="comp-row">
+            <div class="comp comp-int" id="c-fw" onclick="showComp('fw')"><div class="comp-title">Perimeter firewall</div><div class="comp-sub">SMTP from gateway only</div></div>
+            <div class="comp comp-int" id="c-mailsrv" onclick="showComp('mailsrv')"><div class="comp-title">Mail server</div><div class="comp-sub">Exchange / M365 / Gmail</div></div>
+            <div class="comp comp-int" id="c-inbox" onclick="showComp('inbox')"><div class="comp-title">User inbox</div><div class="comp-sub">Final delivery point</div></div>
+            <div class="comp comp-int" id="c-edr" onclick="showComp('edr')" style="border-color:rgba(245,158,11,.15);"><div class="comp-title">EDR / endpoint</div><div class="comp-sub">Last line of defence</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="zone-arr">↓ &nbsp;All events, verdicts, and telemetry streamed in real time</div>
+
+      <!-- Zone 4: Monitoring -->
+      <div class="zone z-mon" id="zone-mon">
+        <div class="zone-hd"><span class="zone-lbl">Zone 4 — Security Monitoring</span><span class="zone-tag">Signals feed back into the policy engine — access can be blocked mid-session</span></div>
+        <div class="zone-body">
+          <div class="comp-row">
+            <div class="comp comp-mon" id="c-siem" onclick="showComp('siem')"><div class="comp-title">SIEM platform</div><div class="comp-sub">Correlation & alerting</div></div>
+            <div class="comp comp-mon" id="c-ueba" onclick="showComp('ueba')"><div class="comp-title">UEBA</div><div class="comp-sub">Behaviour baselining</div></div>
+            <div class="comp comp-mon" id="c-soar" onclick="showComp('soar')"><div class="comp-title">SOAR</div><div class="comp-sub">Automated response</div></div>
+            <div class="comp comp-mon" id="c-ti" onclick="showComp('ti')"><div class="comp-title">Threat intelligence</div><div class="comp-sub">IOC feeds & enrichment</div></div>
+            <div class="comp comp-mon" id="c-soc" onclick="showComp('soc')"><div class="comp-title">SOC team</div><div class="comp-sub">Human-in-the-loop</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback-row">↺ &nbsp;Monitoring signals continuously update gateway rules — the policy engine learns from every threat detected</div>
+    </div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel" id="detail">
+      <div class="dp-placeholder">Click any component above to explore it in depth</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 2: AUTH PROTOCOLS ── -->
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="auth">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 2</div>
+      <h2 class="sec-title">Email Authentication — <span class="hl">SPF · DKIM · DMARC</span></h2>
+      <p class="sec-desc">The three complementary DNS-based protocols that collectively verify a sender's identity and ensure message integrity. All three must be configured correctly to prevent domain spoofing and impersonation attacks.</p>
+    </div>
+    <div class="auth-grid rv">
+      <div class="auth-card ac-spf">
+        <div class="auth-hd"><div class="auth-protocol">SPF</div><div class="auth-full">Sender Policy Framework · RFC 7208</div></div>
+        <div class="auth-body">Validates that the IP address used to send an email is authorised for the sender's claimed domain. The sending domain publishes a list of permitted IP addresses in a DNS TXT record.</div>
+        <div class="auth-steps">
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(16,185,129,.15);color:var(--green);">1</div><div>Receiving server extracts the MAIL FROM domain from the SMTP envelope</div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(16,185,129,.15);color:var(--green);">2</div><div>Queries DNS: <code style="font-family:var(--mono);font-size:10px;background:rgba(16,185,129,.08);padding:1px 4px;border-radius:2px;">example.com TXT "v=spf1 include:..."</code></div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(16,185,129,.15);color:var(--green);">3</div><div>Checks if the sending server's IP is listed in the SPF record</div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(16,185,129,.15);color:var(--green);">4</div><div>Returns Pass / Fail / SoftFail / Neutral to the DMARC evaluator</div></div>
+        </div>
+        <div class="auth-verdict">✓ Pass: sending IP is authorised · ✗ Fail: DMARC policy applies</div>
+        <div class="auth-body"><strong style="color:var(--text);font-size:11.5px;">Limitation:</strong> SPF only checks the envelope MAIL FROM, not the header From address visible to users. Does not prevent display-name spoofing.</div>
+      </div>
+      <div class="auth-card ac-dkim">
+        <div class="auth-hd"><div class="auth-protocol">DKIM</div><div class="auth-full">DomainKeys Identified Mail · RFC 6376</div></div>
+        <div class="auth-body">Adds a cryptographic signature to outgoing email headers, proving that the message originated from an authorised server and was not modified in transit.</div>
+        <div class="auth-steps">
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(59,130,246,.15);color:var(--blue2);">1</div><div>Sending server hashes selected headers + part of body using a private key</div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(59,130,246,.15);color:var(--blue2);">2</div><div>Signature inserted as a <code style="font-family:var(--mono);font-size:10px;background:rgba(59,130,246,.08);padding:1px 4px;border-radius:2px;">DKIM-Signature:</code> header in the email</div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(59,130,246,.15);color:var(--blue2);">3</div><div>Receiving server retrieves the public key from DNS: <code style="font-family:var(--mono);font-size:10px;background:rgba(59,130,246,.08);padding:1px 4px;border-radius:2px;">selector._domainkey.example.com</code></div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(59,130,246,.15);color:var(--blue2);">4</div><div>Validates the signature — proves identity and that content was not altered</div></div>
+        </div>
+        <div class="auth-verdict">✓ Valid: message integrity confirmed · ✗ Invalid: DMARC policy applies</div>
+        <div class="auth-body"><strong style="color:var(--text);font-size:11.5px;">Key rotation:</strong> DKIM selectors should be rotated every 6–12 months. Compromised private keys allow attackers to forge signed messages.</div>
+      </div>
+      <div class="auth-card ac-dmarc">
+        <div class="auth-hd"><div class="auth-protocol">DMARC</div><div class="auth-full">Domain-based Message Authentication · RFC 7489</div></div>
+        <div class="auth-body">Ties SPF and DKIM together and tells receiving servers what to do when authentication fails. Enables domain owners to receive aggregate and forensic reports about their email streams.</div>
+        <div class="auth-steps">
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(167,139,250,.15);color:var(--purple);">1</div><div>Receiving server evaluates SPF and DKIM results for alignment with the header From domain</div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(167,139,250,.15);color:var(--purple);">2</div><div>Looks up DMARC policy: <code style="font-family:var(--mono);font-size:10px;background:rgba(167,139,250,.08);padding:1px 4px;border-radius:2px;">_dmarc.example.com TXT</code></div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(167,139,250,.15);color:var(--purple);">3</div><div>Applies the <code style="font-family:var(--mono);font-size:10px;background:rgba(167,139,250,.08);padding:1px 4px;border-radius:2px;">p=</code> policy to failed messages: none / quarantine / reject</div></div>
+          <div class="auth-step"><div class="auth-step-num" style="background:rgba(167,139,250,.15);color:var(--purple);">4</div><div>Sends aggregate reports (rua=) and forensic reports (ruf=) back to the domain owner</div></div>
+        </div>
+        <div class="auth-verdict">p=reject is the strongest setting — eliminates spoofed domain email entirely</div>
+        <div class="auth-body"><strong style="color:var(--text);font-size:11.5px;">Recommended path:</strong> Start with p=none (monitoring) → p=quarantine (gradual) → p=reject (full enforcement) after analysing reports.</div>
+      </div>
+    </div>
+
+    <div class="rv">
+      <div class="eyebrow" style="margin-top:8px;">DMARC policy reference</div>
+      <table class="policy-table" style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <thead><tr><th>Policy (p=)</th><th>SPF/DKIM fails — what happens</th><th>Reports sent</th><th>Use when</th></tr></thead>
+        <tbody>
+          <tr><td><span class="ptag ptag-none">none</span></td><td>Message delivered normally, no enforcement action taken</td><td>Yes — aggregate & forensic reports collected</td><td>Starting out. Monitoring phase — do not enforce until reports are clean</td></tr>
+          <tr><td><span class="ptag ptag-quar">quarantine</span></td><td>Message sent to spam/junk folder or quarantine queue</td><td>Yes</td><td>Transition phase — catch issues before full reject enforcement</td></tr>
+          <tr><td><span class="ptag ptag-rej">reject</span></td><td>Message rejected at SMTP level — never delivered</td><td>Yes</td><td>Full protection. Eliminates domain spoofing for all conformant receivers</td></tr>
+          <tr><td colspan="4" style="color:var(--text3);font-size:11.5px;padding:10px 14px;">Alignment modes: <span class="ptag ptag-none">aspf=r</span> relaxed (subdomains allowed) · <span class="ptag ptag-none">aspf=s</span> strict (exact domain match required) · Same for <code style="font-family:var(--mono);font-size:10px;">adkim=</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 3: THREATS ── -->
+<section class="sec" id="threats">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 3</div>
+      <h2 class="sec-title">Threat Coverage <span class="hl">Matrix</span></h2>
+      <p class="sec-desc">Seven major threat categories that email security gateways defend against. Click any threat card to see attack mechanism, detection signals, and gateway mitigations in depth.</p>
+    </div>
+    <div class="threat-grid rv" id="threatGrid">
+      <!-- rendered by JS -->
+    </div>
+    <div class="threat-detail" id="threatDetail"></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 4: PIPELINE ── -->
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="pipeline">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 4</div>
+      <h2 class="sec-title">Processing <span class="hl">Pipeline</span></h2>
+      <p class="sec-desc">Every inbound email passes through nine sequential processing stages. Each stage can independently trigger a block, quarantine, or tagging action. Multiple detection layers run in parallel for maximum coverage.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 40px;" class="rv">
+      <div class="pipeline" id="pipelineLeft"></div>
+      <div class="pipeline" id="pipelineRight"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 5: LOGS ── -->
+<section class="sec" id="logs">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 5</div>
+      <h2 class="sec-title">Log Types <span class="hl">& SIEM Integration</span></h2>
+      <p class="sec-desc">The email gateway is a high-fidelity log source for the SOC. Every processed message generates a structured log record forwarded to the SIEM in real time. These logs are correlated with endpoint and identity telemetry to detect multi-stage attacks.</p>
+    </div>
+
+    <div style="margin-bottom:24px;" class="rv">
+      <div class="eyebrow">Supported log formats</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 14px;min-width:130px;">
+          <div style="font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--blue2);margin-bottom:3px;">Syslog</div>
+          <div style="font-size:11px;color:var(--text2);">Universal · UDP/TCP 514</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px;">All major SIEMs</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 14px;min-width:130px;">
+          <div style="font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--green);margin-bottom:3px;">CEF</div>
+          <div style="font-size:11px;color:var(--text2);">ArcSight standard</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px;">Splunk · ArcSight</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 14px;min-width:130px;">
+          <div style="font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--amber);margin-bottom:3px;">LEEF</div>
+          <div style="font-size:11px;color:var(--text2);">Log Event Extended</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px;">IBM QRadar</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 14px;min-width:130px;">
+          <div style="font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--purple);margin-bottom:3px;">JSON</div>
+          <div style="font-size:11px;color:var(--text2);">API-native · structured</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px;">Sentinel · Elastic</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:7px;padding:10px 14px;min-width:130px;">
+          <div style="font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--text2);margin-bottom:3px;">CSV / TXT</div>
+          <div style="font-size:11px;color:var(--text2);">Flat file export</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:4px;">Manual triage</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rv">
+      <div class="eyebrow">Log types generated & forwarded to SIEM</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:10px;">
+        <table class="log-table">
+          <thead><tr><th>Log type</th><th>Key fields</th><th>Primary SOC use</th><th>Use cases</th></tr></thead>
+          <tbody>
+            <tr><td>Email Delivered</td><td>Sender, recipient, subject hash, timestamp, message-ID, size</td><td>Baseline traffic monitoring, DLP compliance audit, sender pattern analysis</td><td><span class="ltag ltag-comp">Compliance</span><span class="ltag ltag-soc">Baseline</span></td></tr>
+            <tr><td>Blocked Email</td><td>Sender IP, envelope from/to, threat name, rule triggered, verdict, action</td><td>Threat hunting, IOC pivoting, campaign identification, block-list tuning</td><td><span class="ltag ltag-ir">IR</span><span class="ltag ltag-hunt">Hunting</span></td></tr>
+            <tr><td>Quarantine</td><td>Verdict, scan engine, quarantine reason, admin action, release status, timestamp</td><td>False positive review, policy tuning, user behaviour analysis</td><td><span class="ltag ltag-soc">SOC</span><span class="ltag ltag-comp">Audit</span></td></tr>
+            <tr><td>Attachment Scan</td><td>File name, SHA-256 hash, file type, MIME type, AV verdict, sandbox verdict</td><td>Malware IOC extraction, hash-based threat hunting, file reputation queries</td><td><span class="ltag ltag-hunt">Hunting</span><span class="ltag ltag-ir">Forensics</span></td></tr>
+            <tr><td>URL Click</td><td>User, rewritten URL, click timestamp, gateway verdict at click time, action taken</td><td>Post-delivery phishing triage, user compromise identification, click-time block review</td><td><span class="ltag ltag-ir">IR</span><span class="ltag ltag-soc">Priority</span></td></tr>
+            <tr><td>DLP Violation</td><td>Policy triggered, data classification, sender, recipient domain, attachment details, action</td><td>Insider threat detection, data exfiltration investigation, compliance evidence</td><td><span class="ltag ltag-ir">Insider Threat</span><span class="ltag ltag-comp">Compliance</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="rv" style="margin-top:24px;">
+      <div class="eyebrow">Critical fields for SOC triage</div>
+      <div class="qref-grid" style="margin-top:10px;">
+        <div class="qref-card">
+          <div class="qref-hd"><div class="qref-hd-dot" style="background:var(--red);"></div><div class="qref-hd-title">Highest priority fields</div></div>
+          <div class="qref-body">
+            <div class="qref-item"><span class="qref-key">gateway_verdict</span><span class="qref-val">MALICIOUS / PHISHING / CLEAN</span></div>
+            <div class="qref-item"><span class="qref-key">url_click_time</span><span class="qref-val">Post-delivery click event</span></div>
+            <div class="qref-item"><span class="qref-key">sandbox_verdict</span><span class="qref-val">ATP behavioural result</span></div>
+            <div class="qref-item"><span class="qref-key">attachment_hash</span><span class="qref-val">SHA-256 → VirusTotal pivot</span></div>
+          </div>
+        </div>
+        <div class="qref-card">
+          <div class="qref-hd"><div class="qref-hd-dot" style="background:var(--amber);"></div><div class="qref-hd-title">Authentication fields</div></div>
+          <div class="qref-body">
+            <div class="qref-item"><span class="qref-key">spf_result</span><span class="qref-val">fail = likely spoofing</span></div>
+            <div class="qref-item"><span class="qref-key">dkim_result</span><span class="qref-val">fail = tampered / unauth</span></div>
+            <div class="qref-item"><span class="qref-key">dmarc_result</span><span class="qref-val">none / quarantine / reject</span></div>
+            <div class="qref-item"><span class="qref-key">sender_ip</span><span class="qref-val">Cross-ref RBLs + TI feeds</span></div>
+          </div>
+        </div>
+        <div class="qref-card">
+          <div class="qref-hd"><div class="qref-hd-dot" style="background:var(--blue);"></div><div class="qref-hd-title">Investigation fields</div></div>
+          <div class="qref-body">
+            <div class="qref-item"><span class="qref-key">dlp_policy</span><span class="qref-val">Classification & risk level</span></div>
+            <div class="qref-item"><span class="qref-key">quarantine_action</span><span class="qref-val">Released_by / Deleted</span></div>
+            <div class="qref-item"><span class="qref-key">message_id</span><span class="qref-val">Unique message identifier</span></div>
+            <div class="qref-item"><span class="qref-key">recipients_count</span><span class="qref-val">Campaign scope indicator</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 6: IR SCENARIOS ── -->
+<section class="sec" id="scenarios">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 6</div>
+      <h2 class="sec-title">Incident Response <span class="hl">Scenarios</span></h2>
+      <p class="sec-desc">Two real-world scenarios that SOC analysts encounter regularly. Each walkthrough shows the full investigation and response workflow — from SIEM alert to containment and remediation.</p>
+    </div>
+    <div class="rv">
+      <div class="scenario-tabs">
+        <button class="stab on" onclick="switchScenario('a',this)">Scenario A — Outbound data exfiltration</button>
+        <button class="stab" onclick="switchScenario('b',this)">Scenario B — Inbound malware delivery</button>
+      </div>
+      <div class="scenario-body show" id="sc-a">
+        <div class="scenario-desc"><strong>Trigger:</strong> A SIEM alert fires when the gateway detects an employee sending multiple documents containing sensitive data to a personal external email address. Walk through: validate → investigate → contain → escalate → remediate.</div>
+        <div class="ir-steps" id="irA"></div>
+        <div class="ir-run-wrap"><button class="cbtn go" onclick="runIR('a')">▶ Run through all steps</button>&nbsp;<button class="cbtn" onclick="resetIR('a')">↺ Reset</button></div>
+      </div>
+      <div class="scenario-body" id="sc-b">
+        <div class="scenario-desc"><strong>Trigger:</strong> A SIEM correlation rule fires when the gateway flags an inbound email containing a potentially malicious attachment sent to an internal user. The gateway verdict indicates a malware delivery attempt. Walk through the full SOC response.</div>
+        <div class="ir-steps" id="irB"></div>
+        <div class="ir-run-wrap"><button class="cbtn go" onclick="runIR('b')">▶ Run through all steps</button>&nbsp;<button class="cbtn" onclick="resetIR('b')">↺ Reset</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── SECTION 7: VENDORS ── -->
+<section class="sec" style="background:var(--bg2);border-top:1px solid var(--border);" id="vendors">
+  <div class="sec-inner">
+    <div class="sec-hd rv">
+      <div class="eyebrow">Section 7</div>
+      <h2 class="sec-title">Vendor <span class="hl">Landscape</span></h2>
+      <p class="sec-desc">Top 10 enterprise email security gateway vendors evaluated across detection efficacy, platform integration, threat intelligence quality, and total cost of ownership.</p>
+    </div>
+    <div class="vendor-grid rv" id="vendorGrid"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a href="index.html" class="footer-back">← Back to library</a>
+    <div class="footer-meta">SecArch Lab · Track A · Diagram 01 · Email Security Architecture · github.com/mizanpranto/secarch-lab</div>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════
+
+const COMP_DATA = {
+  internet:{zone:'Zone 1 — External',title:'Internet Senders',sub:'All external mail origins worldwide',
+    desc:'Every inbound email originates from an external mail server on the public internet. Senders range from legitimate businesses and individuals to malicious actors operating phishing infrastructure, compromised servers, and bulletproof hosting. In Zero Trust email security, no external sender receives any implicit trust regardless of claimed identity.',
+    points:['Billions of emails sent daily from a vast range of IP addresses, hosting providers, and geographic regions','Malicious senders frequently rotate IP addresses, domains, and sending infrastructure to evade block lists','Legitimate bulk senders (marketing platforms, SaaS notifications) must be explicitly whitelisted with care','The gateway evaluates every sender at the connection level before any email content is processed']},
+  dns:{zone:'Zone 1 — External',title:'DNS / MX Records',sub:'Routing infrastructure & authentication record lookups',
+    desc:'The Domain Name System routes inbound email to the correct gateway via MX records. Critically, DNS also hosts the three email authentication records — SPF TXT records, DKIM public keys, and DMARC policies — that the gateway queries for every inbound message to verify sender identity.',
+    points:['MX record points to the email gateway IP — not directly to the internal mail server — forcing all traffic through inspection','SPF record lists all IP addresses authorised to send email for the domain: v=spf1 include:... -all','DKIM public key published under _domainkey subdomain; used by receivers to verify message signature','DMARC record at _dmarc.domain.com defines the enforcement policy (none/quarantine/reject) and reporting addresses']},
+  legit:{zone:'Zone 1 — External',title:'Legitimate Senders',sub:'Partners, SaaS platforms, marketing tools',
+    desc:'Legitimate external senders include business partners, suppliers, SaaS platform notifications, marketing emails, and newsletters. These must be whitelisted carefully to avoid false positives, but legitimate sender infrastructure is also frequently hijacked by attackers to bypass reputation-based filtering.',
+    points:['Shared sending platforms (SendGrid, Mailchimp) mean one bad customer can poison a shared IP reputation','Business partners must be onboarded with proper SPF/DKIM/DMARC alignment, not just IP whitelisting','Legitimate-looking domain infrastructure is frequently purchased and aged before being used in BEC campaigns','Safe sender lists should be reviewed quarterly — threat actors exploit stale whitelists actively']},
+  threats:{zone:'Zone 1 — External',title:'Threat Actors',sub:'Adversaries targeting the organisation via email',
+    desc:'Email threat actors range from nation-state APT groups conducting targeted spear-phishing campaigns to organised cybercriminal groups running automated phishing and ransomware distribution. Social engineering exploits human trust and cannot be fully stopped by technical controls alone.',
+    points:['Nation-state actors (APT28, Lazarus Group, etc.) use highly targeted spear-phishing with legitimate-looking infrastructure','Cybercriminal groups run mass phishing and BEC campaigns at scale using phishing-as-a-service platforms','Insider threats use legitimate email access — DLP and UEBA controls are the primary detection mechanism','Compromised partner accounts are particularly dangerous as they pass authentication checks from trusted domains'],
+    tags:['APT','BEC','Phishing-as-a-Service','Ransomware delivery','Credential harvesting']},
+  conn:{zone:'Zone 2 — Gateway',title:'Connection Filter',sub:'IP reputation · TLS enforcement · Rate limiting',
+    desc:'The first stage of email processing — evaluated at the network layer before any message content is processed. The gateway assesses every incoming SMTP connection against real-time blacklists, checks HELO/EHLO hostname validity, enforces TLS encryption, and applies rate limiting. Suspicious connections are dropped here, saving all downstream scanning resources.',
+    points:['Sender IP checked against RBLs: Spamhaus ZEN, Talos SenderBase, Barracuda RBL, SURBL, URIBL in real time','HELO/EHLO hostname must resolve to a valid DNS record and should match the PTR record of the sending IP','TLS 1.2+ enforced for all inbound SMTP — plain-text connections logged and optionally rejected','Rate limiting: >50 messages per minute from one IP triggers temporary block and alert; >500 is immediate permanent block','If the IP is on a known-malicious list, the connection is dropped before the DATA command is issued — no content is processed']},
+  spf:{zone:'Zone 2 — Gateway',title:'SPF Check',sub:'Sender Policy Framework · RFC 7208',
+    desc:'SPF validates that the IP address sending the email is authorised to send on behalf of the claimed domain. The sending domain publishes a list of authorised IPs in a DNS TXT record. The gateway queries this record and checks if the sending server\'s IP appears in it.',
+    points:['DNS lookup: gateway queries the MAIL FROM domain for a TXT record starting with v=spf1','Pass result continues processing; Fail result triggers DMARC policy evaluation','SoftFail (~all) is treated by some gateways as a warning; hard Fail (-all) triggers immediate action','SPF break when email is forwarded — the forwarding server\'s IP replaces the original, failing the check','Limitation: SPF only checks the envelope sender (MAIL FROM), not the visible header From address — display-name spoofing still possible'],
+    tags:['RFC 7208','DNS TXT record','Envelope validation','IP authorisation']},
+  dkim:{zone:'Zone 2 — Gateway',title:'DKIM Verification',sub:'DomainKeys Identified Mail · RFC 6376',
+    desc:'DKIM adds a cryptographic digital signature to outgoing email headers. The receiving gateway retrieves the sender\'s public key from DNS and verifies the signature, confirming that the message originated from an authorised source and that the headers and body have not been tampered with in transit.',
+    points:['Sending server signs a canonical hash of selected headers (From, To, Subject, Date) plus the message body using its private key','Signature embedded in DKIM-Signature: header field with the signing domain (d=) and selector (s=)','Receiving gateway looks up the public key: <selector>._domainkey.<domain> TXT record','Signature verification proves both identity (from the domain) and integrity (content unchanged since signing)','DKIM survives email forwarding unlike SPF — the signature remains valid regardless of which server relays the message'],
+    tags:['RFC 6376','Digital signature','Public/private key','Message integrity']},
+  dmarc:{zone:'Zone 2 — Gateway',title:'DMARC Policy',sub:'Domain-based Message Authentication · RFC 7489',
+    desc:'DMARC unifies the SPF and DKIM results and defines the action to take when authentication fails. It also provides a reporting mechanism that gives domain owners visibility into how their domain is being used — including any spoofing or unauthorised sending detected worldwide.',
+    points:['Evaluates alignment: does the SPF/DKIM result align with the visible header From address the user sees?','p=none: monitor only — no enforcement, but reports are generated. Start here and review before enforcing','p=quarantine: failing messages go to spam/junk folder. Used during transition to full enforcement','p=reject: failing messages rejected at SMTP. The strongest protection — eliminates domain spoofing for compliant receivers','Aggregate reports (rua=) sent daily/weekly showing all sources sending as the domain — essential for identifying legitimate sending sources before enforcement'],
+    tags:['RFC 7489','p=none','p=quarantine','p=reject','Aggregate reports','Forensic reports']},
+  av:{zone:'Zone 2 — Gateway',title:'Antivirus Scan',sub:'Signature-based detection · Hash matching · File type analysis',
+    desc:'The antivirus scanning layer provides rapid detection of known malware using signature databases and file hash matching. It is the fastest detection layer and blocks all previously identified malware families immediately. Multiple AV engines run in parallel for higher coverage.',
+    points:['SHA-256 hash of each attachment compared against malware threat intelligence databases in real time','Multiple AV engines (Bitdefender, Sophos, ClamAV) run in parallel — one detection = block regardless of other results','File type analysis goes beyond extension — file magic bytes (headers) are read to detect renamed executables','Macro analysis in Office documents: detects auto-open macros, obfuscated VBA, and known macro exploit signatures','Limitation: only detects previously known threats. Novel or slightly modified malware will pass to the ATP sandbox layer'],
+    tags:['Signature-based','Hash matching','Multi-engine','Macro analysis','Office file inspection']},
+  atp:{zone:'Zone 2 — Gateway',title:'ATP Sandbox',sub:'Advanced Threat Protection · Behavioural detonation',
+    desc:'The ATP sandbox is the most powerful detection layer for novel and evasive threats. Unknown or suspicious files are detonated in an isolated virtual machine that mirrors a real user endpoint. Every system call, network connection, file write, and registry change is monitored to determine the file\'s intent.',
+    points:['Sandbox VM images match organisation\'s endpoint configuration — same OS version, installed apps, user privileges','Execution monitoring: process trees, child process spawning, code injection attempts all captured','Network monitoring: any C2 callback, DNS resolution, or HTTP request from the detonated file is flagged and recorded','File system monitoring: new file drops, executable downloads, and persistence mechanisms (registry run keys, scheduled tasks) detected','Anti-evasion: sandbox detects sleep timers, VM detection code, and user interaction requirements — forces execution regardless','Typical analysis time: 30–120 seconds. Email held in queue pending verdict before delivery or blocking'],
+    tags:['VM detonation','C2 callback detection','Process monitoring','Anti-evasion','30–120s analysis']},
+  url:{zone:'Zone 2 — Gateway',title:'URL Rewriting & Click-Time Protection',sub:'All embedded links rewritten · Re-analysed at click time',
+    desc:'URL rewriting is the most critical control for delayed-activation phishing — attacks where the destination URL is clean at delivery but malicious hours later. All hyperlinks in email bodies are replaced with gateway proxy wrappers. When a user clicks, the gateway checks the destination URL in real time against current threat intelligence.',
+    points:['Every URL replaced: https://email.example.com/track?url=https://original-destination.com','At click time: gateway re-evaluates the destination URL against threat intelligence updated since email delivery','Catches late-activation phishing: a legitimate-looking URL that becomes malicious after delivery still gets blocked','User sees a warning page with details of the threat if the URL has been reclassified as malicious post-delivery','Limitation: URL rewriting can be detected and evaded by sophisticated actors using time-locked URLs or QR codes in image attachments'],
+    tags:['Proxy wrapper','Click-time re-scan','Delayed detonation catch','User warning page','Time-of-click protection']},
+  nlp:{zone:'Zone 2 — Gateway',title:'NLP / Heuristic Engine',sub:'Natural language processing · Social engineering detection',
+    desc:'When no malicious link or attachment is present — as in pure text-based BEC attacks — the NLP engine analyses the email body, subject line, and header structure for language patterns associated with social engineering, urgency manipulation, and impersonation.',
+    points:['Urgency signals: "Action required immediately", "Your account will be suspended", "Time-sensitive request"','Authority impersonation: CEO, CFO, IT helpdesk, HMRC, IRS language patterns and display-name spoofing indicators','Wire transfer language: "invoice", "payment", "wire", "urgent approval", "bank account change" combinations flagged','Display-name spoofing: From: "CEO Name <attacker@unrelated-domain.com>" header mismatch detection','Lookalike domain detection: rn vs m, 0 vs O, homoglyph attacks in sender domain identified'],
+    tags:['BEC detection','Urgency scoring','Impersonation signals','Header mismatch','Lookalike domains']},
+  dlp:{zone:'Zone 2 — Gateway',title:'DLP — Outbound Scanning',sub:'Data Loss Prevention · Sensitive content inspection',
+    desc:'The DLP engine inspects all outbound email before it leaves the organisation. It detects sensitive content in both email bodies and attachments using regex patterns, machine learning classifiers, and data fingerprinting techniques to prevent both accidental and intentional data exfiltration.',
+    points:['PII detection: credit card numbers (Luhn algorithm), national ID numbers, passport numbers, NHS numbers','Financial data: bank account numbers, SWIFT codes, IBAN formats, invoice templates with amounts','Intellectual property: source code patterns, CAD file signatures, proprietary document fingerprints','Keywords: classification labels ("CONFIDENTIAL", "RESTRICTED", "SECRET", "COMPANY PRIVATE")','Actions by policy: block silently / notify sender / quarantine for manager approval / allow with audit log entry','Exception workflow: legitimate external data transfers require pre-approval through the DLP exception portal'],
+    tags:['PII detection','Financial data','IP classification','Regex + ML','Manager approval workflow']},
+  policy:{zone:'Zone 2 — Gateway',title:'Policy Engine',sub:'Aggregates all scan results → final routing decision',
+    desc:'The policy engine is the authoritative decision point for every message. It aggregates the results from all preceding scan stages — connection reputation, authentication, AV, ATP, URL, NLP, and DLP — into a composite risk score and maps that score to a configured organisational action.',
+    points:['Composite score: each stage contributes a weighted signal — ATP sandbox result carries highest weight','Three primary outcomes: DELIVER (clean), QUARANTINE (suspicious), BLOCK (malicious/policy violation)','Tagging: adds X-Spam-Score, X-Phishing-Verdict headers consumed by Outlook rules and SIEM parser','Subject tagging: adds [EXTERNAL], [PHISHING], [ENCRYPTED-ATTACHMENT] prefixes for user awareness','Exception handling: VIP sender lists, department-specific policies, time-based rules all applied at this layer','Policy-as-code: rules stored in version control, peer-reviewed, and tested in staging before production deployment'],
+    tags:['Composite scoring','DELIVER/QUARANTINE/BLOCK','X-header tagging','Subject tagging','Policy-as-code']},
+  block:{zone:'Policy Decision',title:'Blocked — Message Rejected',sub:'Confirmed malicious · SMTP reject or silent drop',
+    desc:'Messages classified as confirmed malicious are either rejected at the SMTP level (a 550 rejection code returned to the sending server) or silently dropped. Silent drop is preferred for known malicious senders to avoid revealing detection capabilities.',
+    points:['SMTP 550: "5.7.1 Message rejected for policy reasons" returned for policy-based blocks','Silent drop: no response sent for confirmed phishing/malware — attacker gets no signal that detection occurred','Sender IP and attachment hash added to local block list — future similar messages blocked at connection stage','Block event logged with full metadata and immediately forwarded to SIEM for threat intel correlation','User notification optional: for confirmed phishing, users may receive awareness notification that an attack was blocked']},
+  quar:{zone:'Policy Decision',title:'Quarantine — Pending Review',sub:'Suspicious · Held for admin or user review',
+    desc:'Messages that cannot be definitively classified as clean or malicious are held in a quarantine queue. This prevents delivery of potentially harmful content while allowing legitimate messages caught as false positives to be recovered.',
+    points:['Quarantine portal: web-accessible interface for both admins and end users to review their quarantined messages','Users receive a quarantine digest email (daily or weekly) with options to release, block, or report each message','Admins have bulk-action capabilities: release, reclassify, delete, or create allow/block rules based on quarantine contents','Default retention: 30 days before auto-deletion. Configurable per policy severity tier','SIEM alert: high-confidence phishing in quarantine triggers immediate SOC alert for investigation even before release']},
+  deliver:{zone:'Policy Decision',title:'Delivered — Clean Message',sub:'Passed all checks · Released to mail server',
+    desc:'Messages that pass all security checks are released for delivery to the recipient\'s mail server. Even delivered messages remain protected — all embedded URLs still route through the click-time proxy, and the endpoint EDR monitors for post-delivery compromise.',
+    points:['[EXTERNAL] subject prefix added to all email from outside the organisation for user awareness','X-Gateway-Scanned header confirms message was processed by the security gateway — used by SIEM parsers','All embedded URLs remain rewritten — if threat intelligence updates post-delivery, click will be blocked','Delivery event logged with verdict metadata for SOC baseline monitoring and compliance reporting','Secondary scan: some gateways support post-delivery scanning that can retract emails if threat intel updates within a time window']},
+  fw:{zone:'Zone 3 — Internal',title:'Perimeter Firewall',sub:'SMTP ingress restricted to gateway IP only',
+    desc:'The internal network firewall provides a critical secondary boundary. Strict rules ensure that SMTP connections to the internal mail server are accepted exclusively from the email gateway\'s known IP range. This prevents any attacker from bypassing the gateway by sending directly to the mail server.',
+    points:['SMTP (port 25) permitted only from email gateway IP/range — all other sources blocked','Any direct-to-mail-server SMTP connection attempt triggers an immediate firewall alert in the SIEM','Provides network-level protection against SMTP floods and connection exhaustion attacks on the mail server','All allowed and denied connection attempts logged and forwarded to the SIEM for network operations monitoring']},
+  mailsrv:{zone:'Zone 3 — Internal',title:'Mail Server',sub:'Exchange Online / M365 / Google Workspace',
+    desc:'The organisation\'s mail platform receives clean, pre-scanned email from the gateway and delivers it to recipient mailboxes. In cloud deployments (M365, Google Workspace), native security features provide a second layer of defence, but the email gateway remains the primary control.',
+    points:['Microsoft 365: native Defender for Office 365 provides Safe Attachments and Safe Links as a secondary layer — defence in depth','Google Workspace Enterprise: AI-driven spam and phishing filters add a second detection layer behind the gateway','On-premises Exchange: entirely dependent on the email gateway — no backup detection layer is available','Exchange Online Protection (EOP) can be configured to honour gateway verdicts via X-header rules to prevent re-scanning delays']},
+  inbox:{zone:'Zone 3 — Internal',title:'User Inbox',sub:'Final delivery — last human layer',
+    desc:'The user inbox is the final delivery destination and the last human layer of defence. Despite all technical controls, user awareness remains critical — a sophisticated social engineering attack may pass all automated checks and rely on the user making a correct judgement.',
+    points:['Outlook Safe Links: provides an additional click-time check layer on top of gateway URL rewriting for M365 tenants','Report Phishing button: direct integration allows users to flag missed threats back to the gateway for tuning','User awareness training: regular simulated phishing exercises measure and improve user detection accuracy','MFA enforcement on email accounts: stolen credentials alone are insufficient to access email without the second factor','Conditional access: unmanaged or non-compliant devices may be restricted to read-only or browser-only email access']},
+  edr:{zone:'Zone 3 — Internal',title:'EDR / Endpoint',sub:'Last line of defence · Post-delivery monitoring',
+    desc:'If a malicious attachment or URL somehow bypasses all gateway controls, the Endpoint Detection and Response agent on the user\'s device provides the final safety net. EDR monitors every process spawned by the email client and blocks malicious execution in real time.',
+    points:['Monitors all processes spawned by Outlook, Apple Mail, Thunderbird — any suspicious child process is blocked','Blocks execution of known-malicious file hashes even if they arrived via encrypted attachment that bypassed gateway scanning','Alerts SOC within seconds if a malicious file associated with an email is executed on any endpoint','Captures complete forensic telemetry: full process tree, all network connections, all file system writes, all registry changes','EDR alert correlated with gateway email log in SIEM enables complete kill-chain reconstruction from delivery to execution']},
+  siem:{zone:'Zone 4 — Monitoring',title:'SIEM Platform',sub:'Correlation & detection · Sentinel / QRadar / Exabeam',
+    desc:'The SIEM ingests telemetry from every layer of the email security stack and correlates events across sources to detect multi-stage attacks that no single control could identify. Email gateway logs are one of the most valuable SIEM data sources.',
+    points:['Ingests all 6 log types from the email gateway in real time via Syslog, CEF, or JSON API','Correlation rule example: "Phishing email delivered AND URL clicked by user AND EDR alert on same endpoint within 10 minutes"','Dashboard KPIs: blocked emails per hour, phishing campaign volume trends, DLP violations by department, false positive rate','Threat hunting: analysts query historical email logs to find patterns matching emerging IOCs or attacker TTP changes','Integration with SOAR: high-confidence alerts automatically trigger response playbooks without analyst intervention']},
+  ueba:{zone:'Zone 4 — Monitoring',title:'UEBA',sub:'User & Entity Behaviour Analytics',
+    desc:'UEBA builds statistical baselines of normal email behaviour for every user and entity. Deviations from baseline — unusual sending volume, new external domains, after-hours activity, bulk attachments — produce risk scores that feed back into the gateway\'s policy engine.',
+    points:['Baseline built over 30–90 days: typical email volume, sending times, recipient domains, attachment sizes and types','Anomaly detection: user sending 10× their normal volume at 2am to a new external domain is flagged immediately','Insider threat detection: departing employee downloading and emailing large volumes of data triggers alert + SOAR action','Risk score fed back to policy engine: elevated user risk score causes stricter scanning of that user\'s outbound email','Peer-group analysis: if a user\'s email behaviour suddenly matches a peer group they don\'t belong to, that\'s a signal']},
+  soar:{zone:'Zone 4 — Monitoring',title:'SOAR',sub:'Security Orchestration, Automation & Response',
+    desc:'SOAR automates the response actions that follow a SIEM or UEBA alert, compressing mean-time-to-respond from hours to seconds for well-defined threat scenarios. Email-related SOAR playbooks handle the most common response actions automatically.',
+    points:['Playbook: "Phishing email delivered + user clicked" → quarantine email retroactively + disable user account temporarily + alert SOC','Playbook: "DLP violation" → quarantine outbound email + notify sender + escalate to manager + create compliance ticket','Playbook: "Malware in sandbox" → block sender IP + attachment hash block-list + hunt for other recipients + notify EDR team','Playbook: "BEC attempt detected" → alert CFO security team + freeze pending payment approvals + executive notification','All automated actions logged with reason — human analyst can review, override, or add context post-action']},
+  ti:{zone:'Zone 4 — Monitoring',title:'Threat Intelligence',sub:'IOC feeds · TTP mapping · Proactive blocking',
+    desc:'Threat intelligence feeds supply the gateway and SIEM with current indicators of compromise — malicious IPs, domains, file hashes, and attacker TTPs — enabling proactive blocking before attacks reach the perimeter. New IOCs are actioned into controls automatically.',
+    points:['Commercial feeds: Proofpoint ET Intelligence, CrowdStrike Falcon X, Recorded Future — structured STIX/TAXII format','Open-source feeds: AlienVault OTX, Abuse.ch (URLhaus, MalwareBazaar), Spamhaus, Talos — free, high-quality, community-maintained','Feeds automatically update gateway sender block lists, URL block lists, and SIEM correlation rule watchlists in real time','Campaign tracking: when a known campaign\'s IOCs appear, gateway policy engine can apply stricter rules proactively','MITRE ATT&CK mapping: each detection rule mapped to a technique for coverage gap analysis and red team alignment']},
+  soc:{zone:'Zone 4 — Monitoring',title:'SOC Team',sub:'Human-in-the-loop · Investigation & response',
+    desc:'The Security Operations Centre team provides the judgment, context, and adaptive response that automated systems cannot. They investigate alerts, review the quarantine queue, respond to user-reported phishing, and continuously improve the policy and detection estate.',
+    points:['Tier 1: Triage SIEM alerts, review quarantine queue, respond to user-submitted phishing reports','Tier 2: Deep investigation — full email header analysis, sandbox report review, threat intel pivoting, kill-chain reconstruction','Tier 3 / Threat Intel: identify attacker campaigns, extract IOCs, update block lists and detection rules','Policy review cycle: monthly review of false positive rates, whitelist abuse, and DLP keyword list accuracy','Purple team exercises: red team sends test phishing; blue team tunes detection rules and user awareness training']},
+};
+
+// ═══════════════════════════════════════════════════════════
+//  ARCHITECTURE INTERACTIONS
+// ═══════════════════════════════════════════════════════════
+
+let currentComp = null;
+let traceTimer = null;
+const FLOWS = {
+  inbound: ['c-internet','c-dns','c-conn','c-spf','c-dkim','c-dmarc','c-av','c-atp','c-url','c-nlp','c-policy','c-deliver','c-mailsrv','c-inbox','c-siem'],
+  outbound: ['c-inbox','c-mailsrv','c-dlp','c-policy','c-deliver','c-internet','c-siem'],
+  phishing: ['c-threats','c-conn','c-spf','c-dkim','c-nlp','c-url','c-policy','c-block','c-siem','c-soar'],
+  malware: ['c-threats','c-conn','c-av','c-atp','c-url','c-policy','c-quar','c-siem','c-ti','c-soc'],
+};
+
+function showComp(id) {
+  const d = COMP_DATA[id]; if (!d) return;
+  if (currentComp) { const el = document.getElementById('c-' + currentComp); if (el) { el.classList.remove('lit','lit-green','lit-red','lit-amber'); } }
+  currentComp = id;
+  const el = document.getElementById('c-' + id); if (el) el.classList.add('lit');
+  const panel = document.getElementById('detail');
+  const tags = d.tags ? '<div class="dp-tags">' + d.tags.map(t => `<span class="dp-tag">${t}</span>`).join('') + '</div>' : '';
+  panel.innerHTML = `<div class="dp-zone">${d.zone}</div><div class="dp-title">${d.title}</div><div class="dp-sub">${d.sub}</div><div class="dp-desc">${d.desc}</div><ul class="dp-points">${d.points.map(p=>`<li>${p}</li>`).join('')}</ul>${tags}`;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function traceFlow(type) {
+  resetArch(false);
+  const steps = FLOWS[type]; if (!steps) return;
+  let i = 0;
+  function step() {
+    if (i > 0) {
+      const prev = document.getElementById(steps[i-1]);
+      if (prev) { prev.classList.remove('lit','lit-green','lit-red','lit-amber'); }
+    }
+    if (i >= steps.length) return;
+    const id = steps[i].replace('c-','');
+    const el = document.getElementById(steps[i]);
+    if (el) {
+      const cls = (type==='phishing'||type==='malware') ? 'lit-red' : 'lit-green';
+      el.classList.add(cls);
+      if (COMP_DATA[id]) showComp(id);
+    }
+    i++; traceTimer = setTimeout(step, 900);
+  }
+  step();
+}
+
+function resetArch(clearPanel = true) {
+  if (traceTimer) clearTimeout(traceTimer);
+  Object.keys(COMP_DATA).forEach(id => {
+    const el = document.getElementById('c-' + id);
+    if (el) el.classList.remove('lit','lit-green','lit-red','lit-amber');
+  });
+  currentComp = null;
+  if (clearPanel) document.getElementById('detail').innerHTML = '<div class="dp-placeholder">Click any component above to explore it in depth</div>';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  THREATS
+// ═══════════════════════════════════════════════════════════
+
+const THREATS = [
+  { icon:'🎣', name:'Phishing', risk:'Critical', cls:'tc-crit', badge:'tb-crit',
+    mech:'Fake emails impersonating trusted brands or individuals to steal credentials via malicious links.',
+    desc:'Phishing is the most prevalent email-based attack. Attackers craft convincing emails mimicking banks, SaaS tools, or internal IT helpdesks, directing users to credential-harvesting pages that look identical to the real service.',
+    vectors:['Mass phishing: broad campaigns targeting thousands of addresses','Spear-phishing: targeted, personalised attacks against specific individuals','Clone phishing: duplicate of a legitimate email with links replaced','Voice phishing (vishing): email leads to a phone call for credential collection'],
+    signals:['Sender domain recently registered (< 30 days old)','SPF/DKIM/DMARC authentication failure on sender domain','URL domain different from the organisation it claims to represent','Urgency language: "Your account will be locked in 24 hours"'],
+    controls:['URL rewriting + click-time protection blocks reclassified URLs post-delivery','NLP engine scores urgency and impersonation signals in body text','Display-name spoofing detection in header analysis','User awareness training and simulated phishing programmes']},
+  { icon:'💼', name:'BEC', risk:'Critical', cls:'tc-crit', badge:'tb-crit',
+    mech:'Business Email Compromise — impersonation of executives or vendors to authorise fraudulent transactions.',
+    desc:'BEC is the most financially damaging email threat, causing billions in losses annually. Attackers impersonate CEOs, CFOs, or trusted vendors via carefully crafted emails requesting wire transfers, W-2 data, or gift card purchases. No malicious links or attachments — pure social engineering.',
+    vectors:['CEO fraud: impersonates CEO requesting urgent wire transfer to new account','Vendor fraud: compromised or spoofed vendor account changes payment details','Payroll diversion: HR impersonation requesting employee bank account change','Attorney impersonation: fake legal counsel requesting fund transfer for "confidential" deal'],
+    signals:['Header From address differs from Reply-To address','Sending domain is a lookalike: "micros0ft.com" or "company-corp.com"','No DKIM signature on a domain that normally signs all outbound email','Language patterns: "urgent", "confidential", "do not discuss with others"'],
+    controls:['NLP engine flags wire transfer and payment language combinations','Display-name and lookalike domain detection in header analysis','DMARC p=reject prevents use of exact domain for spoofing','Out-of-band verification process: phone call to confirm unusual financial requests']},
+  { icon:'🦠', name:'Malware delivery', risk:'Critical', cls:'tc-crit', badge:'tb-crit',
+    mech:'Emails delivering malicious payloads via infected attachments — ransomware, RATs, info-stealers.',
+    desc:'Malware delivery via email typically involves an attachment (Office document with malicious macro, PDF with embedded exploit, or archive containing executable) or a link that downloads a payload. Ransomware operators frequently use email as the initial access vector.',
+    vectors:['Macro-enabled Office documents (.docm, .xlsm) with auto-open macros','ZIP/RAR archives containing executables or LNK files','PDF files with embedded JavaScript exploits or malicious URIs','HTML attachments with embedded phishing pages or drive-by downloads','ISO/IMG files bypassing mark-of-the-web protections in Windows'],
+    signals:['File extension mismatch: .pdf extension on an executable binary','Macro auto-open functions detected in Office document XML structure','Sandbox detonation reveals C2 callback or payload download behaviour','SHA-256 hash matches known malware family in threat intelligence feeds'],
+    controls:['Multi-engine AV scanning catches known malware hashes instantly','ATP sandbox detonates unknown files in isolated VM with full monitoring','File type blocking: .exe, .js, .vbs, .wsf, .iso blocked by default even if renamed','Macro blocking: Office documents with auto-open macros quarantined automatically']},
+  { icon:'📧', name:'Spam & graymail', risk:'Medium', cls:'tc-med', badge:'tb-med',
+    mech:'Unsolicited bulk email — from clear-cut spam to commercial newsletters.',
+    desc:'Spam ranges from clearly malicious unsolicited messages to legitimate bulk commercial email (graymail) that users signed up for but no longer want. High spam volume consumes bandwidth, storage, and user attention that should be directed at real work and genuine threats.',
+    vectors:['Snowshoe spam: small volumes from many IPs to evade reputation-based filters','Dictionary attacks: guessing valid email addresses for address harvesting','Image spam: message text in an image to evade text-based content filters','Pump-and-dump: spam promoting penny stocks to manipulate share prices'],
+    signals:['High spam confidence level (SCL) score from reputation analysis','Sending IP on commercial bulk sender blacklists','Low message reputation: new domain, no sending history, no authentication','Message-ID format inconsistent with claimed sending server software'],
+    controls:['Sender reputation scoring and bulk sender identification','Content-based filtering: Bayesian analysis of message body and headers','Graymail filtering: separate folder for commercial newsletters, not block','User-defined allow/block lists with admin override capability']},
+  { icon:'🔒', name:'Data exfiltration', risk:'Critical', cls:'tc-crit', badge:'tb-crit',
+    mech:'Intentional or accidental sending of sensitive data to unauthorised external recipients.',
+    desc:'Data exfiltration via email can be intentional (malicious insider, compromised account) or accidental (wrong recipient autocomplete, misattachment). Both carry significant regulatory and reputational consequences. DLP controls address both scenarios.',
+    vectors:['Compromised account: attacker uses legitimate credentials to email data externally','Malicious insider: departing employee emailing IP, customer lists, or source code','Accidental disclosure: auto-complete sends sensitive email to wrong recipient','Auto-forwarding rule: attacker creates silent forward of all email to external account'],
+    signals:['Outbound email to public domains (gmail, yahoo, hotmail) with attachments containing classification keywords','DLP pattern match: credit card numbers, passport numbers, or source code snippets detected in body or attachments','Volume anomaly: UEBA flags unusual outbound attachment volume for this user','New external domain not previously contacted by this user or department'],
+    controls:['Inline DLP engine scans all outbound email body and attachments before sending','Classification keyword and data pattern detection (PII, financial, IP labels)','Auto-forwarding detection and blocking: rules created to external domains flagged and removed','UEBA monitors outbound volume per user and alerts on significant deviations from baseline']},
+  { icon:'👤', name:'Spoofing & impersonation', risk:'High', cls:'tc-high', badge:'tb-high',
+    mech:'Forging sender addresses or impersonating trusted individuals or brands.',
+    desc:'Email spoofing exploits the lack of native authentication in the SMTP protocol. Attackers forge the From header or use lookalike domains to make emails appear to come from trusted sources. DMARC p=reject is the definitive technical control, but display-name spoofing remains a challenge.',
+    vectors:['Exact domain spoofing: From: ceo@yourdomain.com with DMARC bypass or p=none','Cousin domain: From: ceo@your-domain.com using a recently registered lookalike','Display-name spoofing: From: "CEO Name" <attacker@unrelated.com>','Subdomain spoofing: From: support@mail.paypal.com.attacker.com'],
+    signals:['DMARC FAIL on sender domain — sending IP not in SPF record and no valid DKIM signature','Header From domain does not align with envelope MAIL FROM domain','Registered domain age < 30 days combined with authentication failure','Display name matches internal executive but email domain is external and unrecognised'],
+    controls:['DMARC p=reject eliminates exact-domain spoofing for all compliant receivers','Display-name spoofing detection: header analysis flags mismatches between display name and domain','Lookalike domain detection: edit-distance algorithm identifies domains 1–2 characters different from own domain','External email warning banners: [EXTERNAL] tag reminds users the sender is outside the organisation']},
+  { icon:'💣', name:'Zero-day exploits', risk:'Critical', cls:'tc-crit', badge:'tb-crit',
+    mech:'Novel attack payloads for which no signature exists — detected only via behavioural analysis.',
+    desc:'Zero-day email exploits target unpatched vulnerabilities in email clients, document viewers, or the OS itself. Because no signature exists, traditional AV scanning cannot detect them. The ATP sandbox with behavioural monitoring is the primary control layer.',
+    vectors:['PDF exploits targeting Adobe Reader or browser PDF renderer vulnerabilities','Office format exploits leveraging unpatched memory corruption vulnerabilities','MIME/encoding exploits that confuse email parsers to smuggle malicious content','HTML email exploits that execute JavaScript or CSS to fingerprint or compromise the client'],
+    signals:['ATP sandbox detects unusual behaviour: heap spray patterns, ROP chain execution, shellcode-like memory operations','File triggers exploit-guard rules: process spawns unexpected child processes or attempts privilege escalation','Attachment uses unusual or deprecated encoding that triggers parser anomalies','Network telemetry: detonated file attempts to resolve or reach domains registered within 24 hours'],
+    controls:['ATP sandbox: behavioural analysis catches novel exploits that AV signatures miss','Machine learning models trained on behavioural features rather than file signatures','Attack surface reduction rules: restrict Office applications from spawning child processes','Time-of-click URL re-evaluation: exploit kits delivered via URL are blocked when the URL\'s behaviour is updated in TI feeds']},
+];
+
+function renderThreats() {
+  document.getElementById('threatGrid').innerHTML = THREATS.map((t,i) =>
+    `<div class="threat-card ${t.cls}" onclick="showThreat(${i})">
+      <span class="threat-icon">${t.icon}</span>
+      <div class="threat-name">${t.name}</div>
+      <div class="threat-mech">${t.mech}</div>
+      <span class="threat-badge ${t.badge}">${t.risk}</span>
+    </div>`).join('');
+}
+
+let activeThreat = -1;
+function showThreat(i) {
+  const t = THREATS[i];
+  const panel = document.getElementById('threatDetail');
+  if (activeThreat === i) { panel.classList.remove('show'); activeThreat = -1; return; }
+  activeThreat = i;
+  panel.classList.add('show');
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:28px;">${t.icon}</span>
+      <div><div class="td-name">${t.name}</div><span class="threat-badge ${t.badge}" style="margin:0;">${t.risk} risk</span></div>
+    </div>
+    <div class="td-desc">${t.desc}</div>
+    <div class="td-cols">
+      <div class="td-col"><h4>Attack vectors</h4><ul>${t.vectors.map(v=>`<li>${v}</li>`).join('')}</ul></div>
+      <div class="td-col"><h4>Detection signals</h4><ul>${t.signals.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      <div class="td-col"><h4>Gateway controls</h4><ul>${t.controls.map(c=>`<li>${c}</li>`).join('')}</ul></div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PIPELINE
+// ═══════════════════════════════════════════════════════════
+
+const PIPELINE_STEPS = [
+  {num:1,color:'step-blue',title:'SMTP connection & IP reputation',sub:'Network layer · Before any content',desc:'Gateway accepts the SMTP connection. Sender IP checked against Spamhaus, Talos, Barracuda RBLs in real time. HELO/EHLO hostname validated. TLS 1.2+ enforced. Rate limiting applied. Suspicious IPs dropped immediately.',output:'Accept / Reject connection'},
+  {num:2,color:'step-blue',title:'Envelope & header parsing',sub:'Metadata extraction',desc:'MAIL FROM, RCPT TO, From, Reply-To, Return-Path, Received, and Message-ID headers extracted. Recipient validated against internal directory. Header structure analysed for anomalies.',output:'Envelope data extracted'},
+  {num:3,color:'step-green',title:'SPF authentication',sub:'RFC 7208 · DNS lookup',desc:'Gateway queries DNS for the MAIL FROM domain SPF record. Checks if sending IP is in the authorised list. Returns Pass / Fail / SoftFail / Neutral.',output:'SPF result: PASS / FAIL'},
+  {num:4,color:'step-green',title:'DKIM verification',sub:'RFC 6376 · Cryptographic validation',desc:'Retrieves DKIM public key from DNS. Validates the DKIM-Signature header. Confirms message integrity and that content was not altered in transit.',output:'DKIM result: PASS / FAIL'},
+  {num:5,color:'step-purple',title:'DMARC policy evaluation',sub:'RFC 7489 · SPF + DKIM alignment',desc:'Evaluates alignment between SPF/DKIM results and the header From domain. Applies domain owner\'s DMARC policy (none / quarantine / reject) if alignment fails.',output:'DMARC: PASS / QUARANTINE / REJECT'},
+  {num:6,color:'step-red',title:'Antivirus & signature scan',sub:'Multi-engine · Hash matching',desc:'Multiple AV engines scan all attachments in parallel. SHA-256 hashes compared against malware databases. File magic bytes read to detect renamed executables. Macro analysis on Office files.',output:'Clean / Malicious (known)'},
+  {num:7,color:'step-amber',title:'ATP sandbox detonation',sub:'Behavioural analysis · VM isolation',desc:'Unknown or suspicious files detonated in an isolated VM. C2 callbacks, process injection, file drops, and registry persistence all monitored. Anti-evasion measures force execution. 30–120 second analysis window.',output:'Benign / Malicious (behaviour)'},
+  {num:8,color:'step-blue',title:'URL rewriting & NLP scoring',sub:'Click-time protection · Social engineering',desc:'All URLs replaced with secure proxy wrappers for click-time re-evaluation. NLP engine scores body for urgency, impersonation cues, and wire-transfer language patterns.',output:'URLs rewritten · Risk score assigned'},
+  {num:9,color:'step-purple',title:'DLP scan & policy decision',sub:'Final routing determination',desc:'Outbound email inspected for sensitive content (PII, financial, IP). Policy engine aggregates all stage results into a composite score and issues the final verdict: DELIVER / QUARANTINE / BLOCK.',output:'DELIVER / QUARANTINE / BLOCK'},
+];
+
+function renderPipeline() {
+  const left = PIPELINE_STEPS.slice(0,5);
+  const right = PIPELINE_STEPS.slice(5,9);
+  function mkStep(s) {
+    const isLast = s.num === PIPELINE_STEPS.length;
+    return `<div class="pipe-step ${s.color}">
+      <div class="ps-left">
+        <div class="ps-num">${s.num}</div>
+        ${!isLast ? '<div class="ps-line"></div>' : ''}
+      </div>
+      <div class="ps-box">
+        <div class="ps-title">${s.title}</div>
+        <div class="ps-sub">${s.sub}</div>
+        <div class="ps-desc">${s.desc}</div>
+        <span class="ps-output">→ ${s.output}</span>
+      </div>
+    </div>`;
+  }
+  document.getElementById('pipelineLeft').innerHTML = left.map(mkStep).join('');
+  document.getElementById('pipelineRight').innerHTML = right.map(mkStep).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  IR SCENARIOS
+// ═══════════════════════════════════════════════════════════
+
+const IR_A = [
+  {title:'Validate the SIEM alert',action:'Open the SIEM dashboard and locate the triggered DLP rule alert. Review the correlated email gateway log — sender address, recipient domain (gmail.com / yahoo.com = personal), email subject, attachment names, timestamps.',why:'Confirm the alert is a genuine policy violation and not a false positive before taking containment actions.'},
+  {title:'Deep dive into gateway logs',action:'Search gateway for all emails sent by the user over the past 48 hours. Filter for messages with: external recipients, attachments, subject/body keywords ("confidential", "report", "salary", "customer list").',why:'Determine if this is a one-time mistake, a recurring pattern, or part of an active data exfiltration campaign.'},
+  {title:'Analyse attachment metadata',action:'Examine file names, MIME types, and SHA-256 hashes. Check if the same file was sent to multiple external destinations. Look for unusual file sizes or compressed archives.',why:'Large or compressed files sent repeatedly to unauthorised domains are a strong intentional exfiltration indicator.'},
+  {title:'Inspect email headers',action:'Analyse Return-Path, Reply-To, and Received headers. Identify any proxy or VPN IPs in the transmission path. Check if the account has any suspicious auto-forwarding rules configured.',why:'Reveals whether the account has been compromised by an external attacker or the action is deliberate insider behaviour.'},
+  {title:'UEBA behavioural context',action:'Query UEBA for this user: after-hours sending activity, new external domains not previously contacted, abnormal outbound data volume compared to 90-day baseline. Check peer group comparison.',why:'Baseline deviation evidence strengthens the case for either insider threat or account compromise — guides escalation path.'},
+  {title:'Contain — quarantine & block',action:'Quarantine the email if still in send queue. Block the recipient domain temporarily in the gateway. Lock the user account if malicious intent is confirmed. Remove any auto-forwarding rules from the mailbox.',why:'Halts further data exposure immediately and preserves forensic evidence intact for the investigation.'},
+  {title:'Escalate — HR, Legal, Compliance',action:'Notify HR (insider threat), Legal/Compliance (GDPR/HIPAA data subject notification obligations), and the user\'s line manager. Document all findings with a complete evidence timeline.',why:'Satisfies legal notification requirements and creates an auditable incident record for potential regulatory response.'},
+  {title:'Remediate & prevent recurrence',action:'Update DLP rules to block attachment sends to public domains with approval workflow. Add keyword filters for any classification labels found. Schedule user awareness refresher training.',why:'Closes the control gap that allowed the incident to occur and reduces the probability of recurrence.'},
+];
+
+const IR_B = [
+  {title:'Validate the SIEM alert',action:'Access SIEM dashboard and locate the triggered correlation rule. Review the email gateway log: sender IP, recipient, attachment name/hash, subject, timestamp, and gateway verdict (Malware / Phishing / Spam).',why:'Confirms this is a true positive and establishes the initial risk level of the inbound threat before taking action.'},
+  {title:'Sender reputation analysis',action:'Check sender domain age and registration. Run the source IP through VirusTotal, AbuseIPDB, and Talos Intelligence. Check if the domain resembles a trusted brand (lookalike domain detection).',why:'Assesses infrastructure trustworthiness and links the attack to known threat actors, campaigns, or bulletproof hosting.'},
+  {title:'Review authentication results',action:'Examine SPF, DKIM, and DMARC results in the email log headers. Document the specific failures. Check if this domain normally passes authentication checks.',why:'Confirms whether sender identity is forged — authentication failures prove the email is not from the claimed organisation.'},
+  {title:'Analyse attachment in depth',action:'Review file name, extension, hash, and MIME type. Retrieve the ATP sandbox analysis report: execution behaviour, C2 callback URLs, secondary payload drop paths, and process tree.',why:'Identifies the malware family, delivery mechanism, and attacker objective — essential for correct containment scope.'},
+  {title:'Determine campaign scope',action:'Filter gateway and SIEM logs by sender address, subject line pattern, and attachment SHA-256 hash across all recipients. Identify how many users received the message and whether any opened the attachment.',why:'Distinguishes targeted spear-phishing from a broad campaign — determines the scale and urgency of the response.'},
+  {title:'Contain — quarantine & block',action:'Quarantine / delete the email from all mailboxes using Purview Content Search & Purge or Proofpoint quarantine. Block sender domain/IP. Add attachment hash to block list. Block all extracted C2 URLs.',why:'Prevents the payload from reaching users who have not yet opened the email; stops lateral spread of the threat.'},
+  {title:'Endpoint response (if opened)',action:'If any user opened the attachment: notify EDR team immediately. Hunt for suspicious child processes spawned by the email client, C2 network beaconing, persistence registry keys, and lateral movement indicators.',why:'Stops post-exploitation activity before the attacker can establish persistent access, escalate privileges, or pivot to other systems.'},
+  {title:'Escalate & document',action:'Notify Threat Intelligence team for IOC enrichment and global blocklist update. Alert IT/desktop for endpoint scanning. Notify management if evidence suggests a targeted campaign against the organisation.',why:'Ensures coordinated, complete response across all teams. Creates audit trail and enables post-incident improvement.'},
+  {title:'Post-incident hardening',action:'Enforce DMARC p=reject on all owned domains. Enable attachment sandboxing if not already active. Update phishing detection rule sensitivity. Send security bulletin to all users about the current attack technique.',why:'Closes the detection and policy gaps identified during the incident. Reduces attack surface for the same technique in future.'},
+];
+
+function renderIR() {
+  function mkStep(s, i) {
+    return `<div class="ir-step" id="irs-${s===IR_A?'a':'b'}-${i}" onclick="toggleIRStep(this)">
+      <div class="ir-step-n">${i+1}</div>
+      <div class="ir-step-body">
+        <div class="ir-step-title">${s.title}</div>
+        <div class="ir-step-action">${s.action}</div>
+        <div class="ir-step-why">Why: ${s.why}</div>
+      </div>
+    </div>`;
+  }
+  document.getElementById('irA').innerHTML = IR_A.map((s,i)=>mkStep(s,i)).join('');
+  document.getElementById('irB').innerHTML = IR_B.map((s,i)=>mkStep(s,i)).join('');
+}
+
+function toggleIRStep(el) {
+  el.classList.toggle('active');
+  el.querySelector('.ir-step-n').classList.toggle('done');
+}
+
+let irTimers = {a:null,b:null};
+function runIR(which) {
+  resetIR(which);
+  const steps = document.querySelectorAll(`#ir${which.toUpperCase()} .ir-step`);
+  let i = 0;
+  function step() {
+    if (i > 0) { steps[i-1].querySelector('.ir-step-n').classList.add('done'); }
+    if (i >= steps.length) return;
+    steps[i].classList.add('active');
+    steps[i].querySelector('.ir-step-n').classList.add('done');
+    steps[i].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    i++; irTimers[which] = setTimeout(step, 1200);
+  }
+  step();
+}
+function resetIR(which) {
+  if (irTimers[which]) clearTimeout(irTimers[which]);
+  document.querySelectorAll(`#ir${which.toUpperCase()} .ir-step`).forEach(el => {
+    el.classList.remove('active');
+    el.querySelector('.ir-step-n').classList.remove('done');
+  });
+}
+
+function switchScenario(which, btn) {
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.scenario-body').forEach(b => b.classList.remove('show'));
+  document.getElementById('sc-' + which).classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VENDORS
+// ═══════════════════════════════════════════════════════════
+
+const VENDORS = [
+  {rank:'#1',name:'Proofpoint',product:'Email Protection + TAP',tags:['TAP sandbox','BEC defense','Threat intel']},
+  {rank:'#2',name:'Mimecast',product:'Secure Email Gateway',tags:['URL rewriting','Awareness training','Archive']},
+  {rank:'#3',name:'Microsoft',product:'Defender for Office 365',tags:['M365 native','Safe Links','Safe Attachments']},
+  {rank:'#4',name:'Cisco',product:'Secure Email (IronPort)',tags:['High volume','IronPort ESA','Talos intel']},
+  {rank:'#5',name:'Barracuda',product:'Email Security Gateway',tags:['SME/Enterprise','AI impersonation','Link protect']},
+  {rank:'#6',name:'Fortinet',product:'FortiMail',tags:['Fabric integration','FortiSIEM','FortiSandbox']},
+  {rank:'#7',name:'Trend Micro',product:'Email Security (TMES)',tags:['XDR integration','APT sandbox','Cloud-native']},
+  {rank:'#8',name:'Broadcom',product:'Symantec Email Sec.',tags:['Enterprise scale','DLP depth','Email encryption']},
+  {rank:'#9',name:'Zscaler',product:'Cloud Email Security',tags:['Zero-trust model','Cloud-native','No appliance']},
+  {rank:'#10',name:'Google',product:'Workspace Enterprise',tags:['AI-driven','Gmail native','Zero-trust ctx']},
+];
+
+function renderVendors() {
+  document.getElementById('vendorGrid').innerHTML = VENDORS.map(v =>
+    `<div class="vendor-card">
+      <div class="vendor-rank">${v.rank}</div>
+      <div class="vendor-name">${v.name}</div>
+      <div class="vendor-product">${v.product}</div>
+      <div class="vendor-tags">${v.tags.map(t=>`<span class="vtag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  REVEAL ON SCROLL
+// ═══════════════════════════════════════════════════════════
+
+const ro = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); ro.unobserve(e.target); } });
+}, { threshold: 0.06 });
+document.querySelectorAll('.rv').forEach(el => ro.observe(el));
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+renderThreats();
+renderPipeline();
+renderIR();
+renderVendors();
+setTimeout(() => document.querySelectorAll('.rv').forEach(el => ro.observe(el)), 200);
+</script>
+</body>
+</html>
