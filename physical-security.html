@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physical Security Architecture · SecArch Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--bg2:#0B0E17;--bg3:#0F1320;
+  --card:#0D1119;--card2:#111827;--card3:#141D2B;
+  --border:#1A2235;--border2:#1F2D45;--border3:#263554;
+  --blue:#3B82F6;--blue2:#60A5FA;--blue-dim:#1E3A5F;--blue-faint:rgba(59,130,246,.06);
+  --cyan:#22D3EE;--cyan-dim:#164E63;
+  --green:#10B981;--green-dim:#064E3B;--green2:#34D399;
+  --amber:#F59E0B;--amber-dim:#78350F;--amber2:#FCD34D;
+  --red:#EF4444;--red-dim:#7F1D1D;--red2:#FCA5A5;
+  --purple:#A78BFA;--purple-dim:#3730A3;--purple2:#C4B5FD;
+  --teal:#2DD4BF;--teal-dim:#134E4A;
+  --orange:#F97316;--orange-dim:#7C2D12;--orange2:#FDB37A;
+  --stone:#78716C;--stone-dim:#292524;
+  --text:#E2E8F0;--text2:#8B9DB5;--text3:#3D5066;--text4:#2A3A50;
+  --display:'Syne',sans-serif;--body:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;top:-200px;right:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(245,158,11,.04) 0%,transparent 65%);pointer-events:none;z-index:0;}
+
+/* PROGRESS BAR */
+.pbar{position:fixed;top:52px;left:0;right:0;height:2px;z-index:299;background:var(--border);}
+.pbar-fill{height:100%;background:var(--amber);width:0%;transition:width .1s;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:52px;display:flex;align-items:center;padding:0 20px;gap:10px;background:rgba(7,9,15,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.nav-back{display:flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--mono);font-size:11px;color:var(--text2);padding:5px 10px;border:1px solid var(--border);border-radius:5px;transition:all .15s;letter-spacing:.04em;flex-shrink:0;}
+.nav-back:hover{border-color:var(--amber);color:var(--amber2);}
+.nav-sep{color:var(--text4);font-size:11px;}
+.nav-crumb{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.nav-title{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);}
+.nav-badge{margin-left:auto;font-family:var(--mono);font-size:9px;padding:2px 9px;border-radius:3px;background:var(--amber-dim);border:1px solid rgba(245,158,11,.3);color:var(--amber2);letter-spacing:.08em;}
+
+/* PAGE LAYOUT */
+.page-wrap{display:grid;grid-template-columns:220px 1fr;padding-top:52px;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;padding:22px 14px;border-right:1px solid var(--border);background:var(--bg);z-index:10;}
+.toc-label{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text4);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.toc-list{list-style:none;}
+.toc-item{margin-bottom:1px;}
+.toc-link{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;text-decoration:none;font-size:12.5px;color:var(--text3);transition:all .15s;line-height:1.35;border-left:2px solid transparent;}
+.toc-link:hover{background:var(--card);color:var(--text2);}
+.toc-link.active{background:rgba(245,158,11,.06);color:var(--amber2);border-left-color:var(--amber);font-weight:500;}
+.toc-n{font-family:var(--mono);font-size:9px;color:var(--text4);min-width:16px;}
+.toc-link.active .toc-n{color:var(--amber2);}
+.toc-div{height:1px;background:var(--border);margin:10px 0;}
+.sb-note{font-family:var(--mono);font-size:10px;color:var(--text4);line-height:1.6;padding:10px;border:1px solid var(--border);border-radius:5px;background:var(--card);}
+
+/* MAIN */
+.main{padding:56px 52px 80px;min-width:0;position:relative;z-index:1;}
+
+/* HERO */
+.hero{max-width:760px;margin-bottom:64px;}
+.hero-ey{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.18em;text-transform:uppercase;margin-bottom:18px;}
+.hero-ey-line{width:24px;height:1px;background:var(--border2);}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);animation:hblink 1.6s ease infinite;}
+@keyframes hblink{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.3);}}
+.hero-h1{font-family:var(--display);font-size:clamp(34px,5vw,58px);font-weight:800;line-height:.95;letter-spacing:-.03em;color:var(--text);margin-bottom:12px;}
+.hero-h1 .hl{-webkit-text-stroke:1px var(--amber);-webkit-text-fill-color:transparent;}
+.hero-sub{font-family:var(--mono);font-size:11.5px;color:var(--orange2);letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;}
+.hero-lead{font-size:16px;color:var(--text2);line-height:1.8;font-weight:300;margin-bottom:26px;}
+.hero-pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:28px;}
+.hpill{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:14px;border:1px solid;letter-spacing:.04em;}
+.hp-am{border-color:rgba(245,158,11,.3);color:var(--amber2);background:rgba(245,158,11,.06);}
+.hp-re{border-color:rgba(239,68,68,.3);color:var(--red2);background:rgba(239,68,68,.06);}
+.hp-bl{border-color:rgba(59,130,246,.3);color:var(--blue2);background:rgba(59,130,246,.06);}
+.hp-gr{border-color:rgba(16,185,129,.3);color:var(--green2);background:rgba(16,185,129,.06);}
+.hp-pu{border-color:rgba(167,139,250,.3);color:var(--purple2);background:rgba(167,139,250,.06);}
+.hp-or{border-color:rgba(249,115,22,.3);color:var(--orange2);background:rgba(249,115,22,.06);}
+.hero-stats{display:flex;flex-wrap:wrap;}
+.hstat{padding:14px 22px;border:1px solid var(--border);background:var(--card);text-align:center;margin:-1px 0 0 -1px;}
+.hstat:first-child{border-radius:8px 0 0 8px;}
+.hstat:last-child{border-radius:0 8px 8px 0;}
+.hstat-n{font-family:var(--display);font-size:24px;font-weight:800;color:var(--text);line-height:1;}
+.hstat-l{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-top:3px;text-transform:uppercase;}
+
+/* SECTION */
+.sec{scroll-margin-top:72px;margin-bottom:72px;}
+.eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;color:var(--amber);}
+.eyebrow::before{content:'';width:16px;height:1px;background:currentColor;}
+.eyebrow.bl{color:var(--blue);}.eyebrow.bl::before{background:var(--blue);}
+.eyebrow.gr{color:var(--green);}.eyebrow.gr::before{background:var(--green);}
+.eyebrow.re{color:var(--red);}.eyebrow.re::before{background:var(--red);}
+.eyebrow.pu{color:var(--purple);}.eyebrow.pu::before{background:var(--purple);}
+.eyebrow.te{color:var(--teal);}.eyebrow.te::before{background:var(--teal);}
+.eyebrow.or{color:var(--orange);}.eyebrow.or::before{background:var(--orange);}
+.sec-h{font-family:var(--display);font-size:clamp(22px,3vw,32px);font-weight:700;line-height:1.1;letter-spacing:-.02em;color:var(--text);}
+.sec-h .hl{color:var(--amber2);}
+.sec-h .bl{color:var(--blue2);}
+.sec-h .gr{color:var(--green2);}
+.sec-h .re{color:var(--red2);}
+.sec-h .pu{color:var(--purple2);}
+.sec-h .te{color:var(--teal);}
+.sec-h .or{color:var(--orange2);}
+.sec-desc{font-size:14px;color:var(--text2);max-width:640px;margin-top:8px;line-height:1.75;font-weight:300;}
+.sec-hd{margin-bottom:28px;}
+.divider{border:none;border-top:1px solid var(--border);margin:72px 0 0;}
+
+/* CTRL BAR */
+.ctrl{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.cbtn{font-family:var(--mono);font-size:10.5px;padding:7px 13px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;letter-spacing:.04em;display:flex;align-items:center;gap:5px;}
+.cbtn:hover{border-color:var(--border2);color:var(--text);}
+.cbtn.c-am{background:var(--amber-dim);border-color:var(--amber);color:var(--amber2);}
+.cbtn.c-am:hover{background:var(--amber);color:#000;}
+.cbtn.c-gr{background:var(--green-dim);border-color:var(--green);color:var(--green2);}
+.cbtn.c-gr:hover{background:var(--green);color:#fff;}
+.cbtn.c-re{background:var(--red-dim);border-color:var(--red);color:var(--red2);}
+.cbtn.c-re:hover{background:var(--red);color:#fff;}
+.cbtn.c-bl{background:var(--blue-dim);border-color:var(--blue);color:var(--blue2);}
+.cbtn.c-bl:hover{background:var(--blue);color:#fff;}
+.ctrl-hint{font-family:var(--mono);font-size:10px;color:var(--text4);margin-left:auto;}
+.speed-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-family:var(--mono);font-size:10px;color:var(--text4);}
+
+/* ARCHITECTURE — CONCENTRIC LAYERS */
+.arch-wrap{display:flex;flex-direction:column;gap:4px;}
+.layer{border-radius:10px;border:1px solid;overflow:hidden;transition:border-color .2s;}
+.layer-hd{padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.04);}
+.layer-lbl{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;}
+.layer-tag{font-family:var(--mono);font-size:8.5px;color:var(--text4);letter-spacing:.04em;}
+.layer-body{padding:7px 9px;display:flex;flex-direction:column;gap:5px;}
+.comp-row{display:flex;gap:5px;flex-wrap:wrap;}
+
+/* Component */
+.comp{flex:1;min-width:88px;border-radius:7px;padding:9px 8px 8px;cursor:pointer;border:1px solid transparent;text-align:center;position:relative;transition:transform .18s ease,border-color .18s,background .15s,box-shadow .25s;}
+.comp:hover{transform:translateY(-2px);}
+.comp-name{font-size:11.5px;font-weight:500;color:var(--text);line-height:1.3;font-family:var(--body);}
+.comp-sub{font-size:9.5px;color:var(--text4);line-height:1.3;margin-top:2px;font-family:var(--mono);}
+
+/* PULSE RING animation */
+@keyframes ring-pulse{
+  0%{box-shadow:0 0 0 0 var(--rc,rgba(245,158,11,.4));}
+  65%{box-shadow:0 0 0 10px rgba(0,0,0,0);}
+  100%{box-shadow:0 0 0 0 rgba(0,0,0,0);}
+}
+@keyframes pop-in{from{opacity:.5;transform:translateY(-2px) scale(.96);}to{opacity:1;transform:translateY(-2px) scale(1);}}
+
+.comp.lit{border-color:var(--amber)!important;background:rgba(245,158,11,.08)!important;transform:translateY(-2px);--rc:rgba(245,158,11,.4);animation:ring-pulse 1.1s ease,pop-in .22s ease;}
+.comp.lit-gr{border-color:var(--green)!important;background:rgba(16,185,129,.08)!important;transform:translateY(-2px);--rc:rgba(16,185,129,.4);animation:ring-pulse 1.1s ease,pop-in .22s ease;}
+.comp.lit-re{border-color:var(--red)!important;background:rgba(239,68,68,.08)!important;transform:translateY(-2px);--rc:rgba(239,68,68,.4);animation:ring-pulse 1.1s ease,pop-in .22s ease;}
+.comp.lit-bl{border-color:var(--blue)!important;background:rgba(59,130,246,.08)!important;transform:translateY(-2px);--rc:rgba(59,130,246,.4);animation:ring-pulse 1.1s ease,pop-in .22s ease;}
+
+/* Layer color themes */
+.l-perim{background:#0A0C0E;border-color:var(--border);}
+.l-perim .layer-hd{background:rgba(255,255,255,.02);}.l-perim .layer-lbl{color:var(--text3);}
+.c-perim{background:#0F1218;border-color:var(--border);color:var(--text);}
+.c-perim:hover{background:var(--card2);}
+
+.l-outer{background:#0E0B08;border-color:rgba(245,158,11,.2);}
+.l-outer .layer-hd{background:rgba(245,158,11,.04);}.l-outer .layer-lbl{color:var(--amber);}
+.c-outer{background:#131008;border-color:rgba(245,158,11,.12);color:var(--text);}
+.c-outer:hover{background:#181408;}
+
+.l-inner{background:#080E12;border-color:rgba(59,130,246,.2);}
+.l-inner .layer-hd{background:rgba(59,130,246,.04);}.l-inner .layer-lbl{color:var(--blue2);}
+.c-inner{background:#0C1420;border-color:rgba(59,130,246,.1);color:var(--text);}
+.c-inner:hover{background:#101820;}
+.c-inner-core{background:#1A2C44;border-color:var(--blue);color:var(--text);}
+.c-inner-core:hover{background:#1E3450;}
+
+.l-core{background:#080E10;border-color:rgba(16,185,129,.2);}
+.l-core .layer-hd{background:rgba(16,185,129,.04);}.l-core .layer-lbl{color:var(--green2);}
+.c-core{background:#0A1210;border-color:rgba(16,185,129,.12);color:var(--text);}
+.c-core:hover{background:#0E1814;}
+
+.l-mon{background:#0C0A12;border-color:rgba(167,139,250,.2);}
+.l-mon .layer-hd{background:rgba(167,139,250,.04);}.l-mon .layer-lbl{color:var(--purple2);}
+.c-mon{background:#100E1A;border-color:rgba(167,139,250,.1);color:var(--text);}
+.c-mon:hover{background:#141226;}
+
+/* Layer connectors */
+.layer-arr{text-align:center;padding:3px 0;font-family:var(--mono);font-size:10.5px;color:var(--text4);display:flex;align-items:center;justify-content:center;gap:16px;}
+.feedback-row{text-align:center;padding:5px 0;border-top:1px dashed var(--border);margin-top:4px;font-family:var(--mono);font-size:9.5px;color:var(--text4);letter-spacing:.06em;}
+
+/* Trace status */
+.trace-bar{display:none;align-items:center;gap:10px;margin-top:10px;padding:10px 14px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:7px;font-family:var(--mono);font-size:11px;}
+.trace-bar.show{display:flex;}
+.tb-step{color:var(--amber2);font-weight:500;}
+.tb-name{color:var(--text2);}
+
+/* DETAIL PANEL */
+.detail-panel{border:1px solid var(--border2);border-radius:12px;background:var(--card);padding:22px;margin-top:14px;min-height:110px;transition:opacity .2s ease,transform .2s ease;}
+.detail-panel.fading{opacity:0;transform:translateY(5px);}
+.dp-zone{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+.dp-title{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--text);margin-bottom:4px;}
+.dp-sub{font-family:var(--mono);font-size:10.5px;color:var(--text3);margin-bottom:12px;}
+.dp-desc{font-size:14px;color:var(--text2);line-height:1.78;font-weight:300;margin-bottom:14px;}
+.dp-points{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.dp-points li{display:flex;gap:8px;font-size:13.5px;color:var(--text2);line-height:1.55;}
+.dp-points li::before{content:'▸';color:var(--amber);opacity:.7;flex-shrink:0;margin-top:2px;font-size:11px;}
+.dp-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px;}
+.dp-tag{font-family:var(--mono);font-size:9.5px;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);color:var(--text3);}
+.dp-hint{color:var(--text3);font-family:var(--mono);font-size:12px;text-align:center;padding:30px;}
+
+/* CONTROL TYPES */
+.ctrl-types-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.ct-card{border-radius:10px;border:1px solid var(--border);background:var(--card);padding:18px;position:relative;overflow:hidden;}
+.ct-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.ct-prev::before{background:var(--blue);}
+.ct-det::before{background:var(--amber);}
+.ct-deter::before{background:var(--purple);}
+.ct-corr::before{background:var(--green);}
+.ct-icon{font-size:22px;margin-bottom:10px;display:block;}
+.ct-title{font-family:var(--display);font-size:13.5px;font-weight:700;margin-bottom:6px;}
+.ct-prev .ct-title{color:var(--blue2);}
+.ct-det .ct-title{color:var(--amber2);}
+.ct-deter .ct-title{color:var(--purple2);}
+.ct-corr .ct-title{color:var(--green2);}
+.ct-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;margin-bottom:10px;}
+.ct-examples{list-style:none;display:flex;flex-direction:column;gap:3px;}
+.ct-examples li{font-size:11.5px;color:var(--text3);display:flex;gap:6px;}
+.ct-examples li::before{content:'→';color:var(--text4);font-family:var(--mono);}
+
+/* LAYERED DEFENCE MATRIX */
+.matrix-table{width:100%;border-collapse:collapse;}
+.matrix-table th{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;background:var(--card);}
+.matrix-table td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;vertical-align:top;line-height:1.55;}
+.matrix-table tr:last-child td{border-bottom:none;}
+.matrix-table tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+.matrix-table td:first-child{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);}
+.mtag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:3px;border:1px solid;margin:1px 2px;}
+.mt-bl{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.2);color:var(--blue2);}
+.mt-am{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber2);}
+.mt-gr{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.2);color:var(--green2);}
+.mt-re{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red2);}
+.mt-pu{background:rgba(167,139,250,.08);border-color:rgba(167,139,246,.2);color:var(--purple2);}
+.mt-or{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.2);color:var(--orange2);}
+
+/* ACCESS CONTROL TECH */
+.ac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.ac-card{border:1px solid var(--border);border-radius:9px;background:var(--card);padding:16px;cursor:pointer;transition:all .15s;}
+.ac-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.ac-card.selected{border-color:var(--amber);background:rgba(245,158,11,.04);}
+.ac-icon{font-size:20px;margin-bottom:8px;}
+.ac-title{font-family:var(--display);font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.ac-tier{font-family:var(--mono);font-size:9px;padding:1px 7px;border-radius:3px;display:inline-block;margin-bottom:7px;}
+.ac-desc{font-size:12px;color:var(--text2);line-height:1.55;font-weight:300;}
+.ac-detail{margin-top:14px;padding:16px;border:1px solid var(--border2);border-radius:8px;background:var(--card2);display:none;}
+.ac-detail.show{display:block;}
+.ac-detail-title{font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.ac-detail-desc{font-size:13.5px;color:var(--text2);line-height:1.75;font-weight:300;margin-bottom:12px;}
+.ac-detail-ul{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.ac-detail-ul li{display:flex;gap:8px;font-size:13px;color:var(--text2);line-height:1.5;}
+.ac-detail-ul li::before{content:'▸';color:var(--amber);opacity:.7;flex-shrink:0;margin-top:2px;font-size:10px;}
+
+/* CCTV GRID */
+.cctv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cctv-card{border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden;}
+.cctv-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.cctv-hd-icon{font-size:16px;}
+.cctv-hd-title{font-family:var(--display);font-size:14px;font-weight:700;color:var(--text);}
+.cctv-hd-sub{font-family:var(--mono);font-size:9.5px;color:var(--text3);}
+.cctv-body{padding:14px 16px;}
+.cctv-item{display:flex;gap:8px;margin-bottom:8px;font-size:13px;color:var(--text2);line-height:1.55;align-items:flex-start;}
+.cctv-item:last-child{margin-bottom:0;}
+.cctv-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.cctv-item strong{color:var(--text);font-weight:500;}
+
+/* PIPELINE */
+.pipeline{display:flex;flex-direction:column;}
+.ps{display:flex;gap:16px;align-items:stretch;}
+.ps-left{display:flex;flex-direction:column;align-items:center;width:44px;flex-shrink:0;}
+.ps-num{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:13px;font-weight:700;flex-shrink:0;border:1.5px solid;z-index:1;}
+.ps-line{width:1px;flex:1;min-height:12px;margin:2px 0;}
+.ps-box{flex:1;border:1px solid var(--border);border-radius:8px;padding:13px 16px;margin-bottom:5px;background:var(--card);transition:all .15s;}
+.ps-box:hover{background:var(--card2);border-color:var(--border2);}
+.ps-title{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:2px;}
+.ps-sub{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:.03em;}
+.ps-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;}
+.ps-out{margin-top:8px;display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9.5px;padding:3px 9px;border-radius:3px;border:1px solid;}
+.c-am .ps-num{background:rgba(245,158,11,.1);border-color:var(--amber);color:var(--amber2);}
+.c-am .ps-line{background:linear-gradient(var(--amber),rgba(245,158,11,.1));}
+.c-am .ps-title{color:var(--amber2);}
+.c-am .ps-out{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2);color:var(--amber2);}
+.c-bl .ps-num{background:rgba(59,130,246,.1);border-color:var(--blue);color:var(--blue2);}
+.c-bl .ps-line{background:linear-gradient(var(--blue),rgba(59,130,246,.1));}
+.c-bl .ps-title{color:var(--blue2);}
+.c-bl .ps-out{background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.2);color:var(--blue2);}
+.c-gr .ps-num{background:rgba(16,185,129,.1);border-color:var(--green);color:var(--green);}
+.c-gr .ps-line{background:linear-gradient(var(--green),rgba(16,185,129,.1));}
+.c-gr .ps-title{color:var(--green2);}
+.c-gr .ps-out{background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.2);color:var(--green2);}
+.c-re .ps-num{background:rgba(239,68,68,.1);border-color:var(--red);color:var(--red);}
+.c-re .ps-line{background:linear-gradient(var(--red),rgba(239,68,68,.1));}
+.c-re .ps-title{color:var(--red2);}
+.c-re .ps-out{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.2);color:var(--red2);}
+.c-pu .ps-num{background:rgba(167,139,250,.1);border-color:var(--purple);color:var(--purple2);}
+.c-pu .ps-line{background:linear-gradient(var(--purple),rgba(167,139,250,.1));}
+.c-pu .ps-title{color:var(--purple2);}
+.c-pu .ps-out{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.2);color:var(--purple2);}
+.c-or .ps-num{background:rgba(249,115,22,.1);border-color:var(--orange);color:var(--orange2);}
+.c-or .ps-line{background:linear-gradient(var(--orange),rgba(249,115,22,.1));}
+.c-or .ps-title{color:var(--orange2);}
+.c-or .ps-out{background:rgba(249,115,22,.06);border-color:rgba(249,115,22,.2);color:var(--orange2);}
+
+/* IR SCENARIOS */
+.sc-tabs{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:18px;}
+.stab{flex:1;padding:12px 14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;border-right:1px solid var(--border);}
+.stab:last-child{border-right:none;}
+.stab:hover{background:var(--card);color:var(--text);}
+.stab.on{background:var(--amber-dim);color:var(--amber2);border-bottom:2px solid var(--amber);}
+.sc-body{display:none;}
+.sc-body.show{display:block;animation:fade-up .25s ease;}
+@keyframes fade-up{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.sc-desc{font-size:14px;color:var(--text2);line-height:1.75;font-weight:300;margin-bottom:18px;padding:14px 16px;border-left:2px solid var(--border2);background:var(--card);}
+.sc-desc strong{color:var(--text);font-weight:500;}
+.ir-steps{display:flex;flex-direction:column;gap:7px;}
+.ir-step{display:flex;gap:12px;padding:13px 15px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;transition:transform .2s ease,border-color .2s,background .2s,box-shadow .2s;}
+.ir-step:hover{border-color:var(--border2);transform:translateX(2px);}
+@keyframes ir-slide{from{transform:translateX(3px) scale(.99);}50%{transform:translateX(6px) scale(1.005);}to{transform:translateX(4px) scale(1);}}
+.ir-step.active{border-color:var(--amber);background:rgba(245,158,11,.04);transform:translateX(4px);box-shadow:0 0 0 3px rgba(245,158,11,.1);animation:ir-slide .3s ease;}
+.ir-step.done{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.03);}
+.ir-n{width:27px;height:27px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;font-weight:500;background:var(--amber-dim);border:1px solid rgba(245,158,11,.3);color:var(--amber2);transition:all .2s;}
+.ir-n.done{background:var(--green-dim);border-color:var(--green);color:var(--green2);}
+.ir-body{flex:1;}
+.ir-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;font-family:var(--display);}
+.ir-action{font-size:12.5px;color:var(--text2);line-height:1.55;font-weight:300;}
+.ir-why{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:5px;padding:3px 9px;border-radius:3px;border:1px solid var(--border);display:inline-block;}
+
+/* ENVIRONMENTAL */
+.env-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.env-card{border:1px solid var(--border);border-radius:9px;background:var(--card);padding:16px;}
+.env-icon{font-size:22px;margin-bottom:8px;display:block;}
+.env-title{font-family:var(--display);font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.env-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;margin-bottom:8px;}
+.env-specs{list-style:none;display:flex;flex-direction:column;gap:3px;}
+.env-specs li{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;border-bottom:1px solid var(--border);color:var(--text2);}
+.env-specs li:last-child{border-bottom:none;}
+.env-specs .spec-k{color:var(--text3);font-family:var(--mono);font-size:10px;}
+.env-specs .spec-v{color:var(--text2);font-size:11px;}
+
+/* QUICK REF */
+.qref-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.qref-card{border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden;}
+.qref-hd{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.qref-dot{width:7px;height:7px;border-radius:50%;}
+.qref-title{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
+.qref-body{padding:10px 14px;}
+.qref-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px;gap:8px;}
+.qref-row:last-child{border-bottom:none;}
+.qref-k{color:var(--text2);}
+.qref-v{font-family:var(--mono);font-size:10px;color:var(--text3);text-align:right;}
+
+/* STANDARDS TABLE */
+.std-table{width:100%;border-collapse:collapse;}
+.std-table th{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;background:var(--card);}
+.std-table td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top;font-size:13px;color:var(--text2);line-height:1.55;}
+.std-table tr:last-child td{border-bottom:none;}
+.std-table tr:nth-child(even) td{background:rgba(255,255,255,.015);}
+.std-table td:first-child{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;}
+
+/* FOOTER */
+footer{position:relative;z-index:1;padding:28px 52px;border-top:1px solid var(--border);background:var(--bg2);}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-back{display:flex;align-items:center;gap:6px;text-decoration:none;font-family:var(--mono);font-size:11px;color:var(--text2);padding:7px 13px;border:1px solid var(--border);border-radius:5px;transition:all .15s;}
+.footer-back:hover{border-color:var(--amber);color:var(--amber2);}
+.footer-meta{font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease;}
+.rv.in{opacity:1;transform:translateY(0);}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .page-wrap{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .main{padding:40px 16px 60px;}
+  .ctrl-types-grid{grid-template-columns:1fr 1fr;}
+  .env-grid{grid-template-columns:1fr 1fr;}
+  .cctv-grid{grid-template-columns:1fr;}
+  .pipeline-2col{grid-template-columns:1fr;}
+  footer{padding:24px 16px;}
+}
+
+/* HERO ANIMATION */
+@keyframes fi{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.hero>*{animation:fi .45s ease both;}
+.hero-ey{animation-delay:.04s;}
+.hero-h1{animation-delay:.08s;}
+.hero-sub{animation-delay:.12s;}
+.hero-lead{animation-delay:.15s;}
+.hero-pills{animation-delay:.18s;}
+.hero-stats{animation-delay:.21s;}
+</style>
+</head>
+<body>
+
+<div class="pbar"><div class="pbar-fill" id="pbar"></div></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-back">← Library</a>
+  <span class="nav-sep">/</span>
+  <span class="nav-crumb">Track A</span>
+  <span class="nav-sep">/</span>
+  <span class="nav-title">Physical Security Architecture</span>
+  <div class="nav-badge">TRACK A · 17</div>
+</nav>
+
+<!-- PAGE -->
+<div class="page-wrap">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="toc-label">Contents</div>
+  <ul class="toc-list">
+    <li class="toc-item"><a class="toc-link active" href="#principles" id="toc-0"><span class="toc-n">01</span>Core principles</a></li>
+    <li class="toc-item"><a class="toc-link" href="#architecture" id="toc-1"><span class="toc-n">02</span>Architecture layers</a></li>
+    <li class="toc-item"><a class="toc-link" href="#control-types" id="toc-2"><span class="toc-n">03</span>Control types</a></li>
+    <li class="toc-item"><a class="toc-link" href="#access-control" id="toc-3"><span class="toc-n">04</span>Access control tech</a></li>
+    <li class="toc-item"><a class="toc-link" href="#surveillance" id="toc-4"><span class="toc-n">05</span>Surveillance & CCTV</a></li>
+    <li class="toc-item"><a class="toc-link" href="#data-centre" id="toc-5"><span class="toc-n">06</span>Data centre security</a></li>
+    <li class="toc-item"><a class="toc-link" href="#environment" id="toc-6"><span class="toc-n">07</span>Environmental controls</a></li>
+    <li class="toc-item"><a class="toc-link" href="#scenarios" id="toc-7"><span class="toc-n">08</span>Incident scenarios</a></li>
+    <li class="toc-item"><a class="toc-link" href="#standards" id="toc-8"><span class="toc-n">09</span>Standards</a></li>
+    <li class="toc-item"><a class="toc-link" href="#reference" id="toc-9"><span class="toc-n">10</span>Quick reference</a></li>
+  </ul>
+  <div class="toc-div"></div>
+  <div class="sb-note">Physical + digital security must be integrated. A breached server room bypass makes all cyber controls irrelevant.</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- HERO -->
+<div class="hero" id="top">
+  <div class="hero-ey">
+    <div class="hero-ey-line"></div>
+    <div class="hero-dot"></div>
+    Security Architecture · Track A
+    <div class="hero-ey-line"></div>
+  </div>
+  <h1 class="hero-h1">Physical Security<br><span class="hl">Architecture</span></h1>
+  <p class="hero-sub">Defence in depth · Concentric layers · Detection to deterrence</p>
+  <p class="hero-lead">A complete interactive reference for enterprise physical security — from perimeter fencing and vehicle barriers through building access control, mantrap design, CCTV systems, server room hardening, environmental monitoring, and guard operations. Covers how physical controls integrate with cyber security.</p>
+  <div class="hero-pills">
+    <span class="hpill hp-am">Concentric layers</span>
+    <span class="hpill hp-re">Deter · Detect · Delay · Respond</span>
+    <span class="hpill hp-bl">Access control</span>
+    <span class="hpill hp-gr">Environmental monitoring</span>
+    <span class="hpill hp-pu">Surveillance & CCTV</span>
+    <span class="hpill hp-or">Physical-cyber integration</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-n" style="color:var(--amber2);">5</div><div class="hstat-l">Security layers</div></div>
+    <div class="hstat"><div class="hstat-n" style="color:var(--blue2);">30+</div><div class="hstat-l">Components</div></div>
+    <div class="hstat"><div class="hstat-n" style="color:var(--green2);">4</div><div class="hstat-l">Control types</div></div>
+    <div class="hstat"><div class="hstat-n" style="color:var(--red2);">8</div><div class="hstat-l">Threat scenarios</div></div>
+    <div class="hstat"><div class="hstat-n" style="color:var(--purple2);">3</div><div class="hstat-l">IR walkthroughs</div></div>
+    <div class="hstat"><div class="hstat-n">7</div><div class="hstat-l">Standards</div></div>
+  </div>
+</div>
+
+<!-- S1: CORE PRINCIPLES -->
+<section class="sec" id="principles">
+  <div class="sec-hd rv">
+    <div class="eyebrow">Section 01</div>
+    <h2 class="sec-h">Core <span class="hl">Security Principles</span></h2>
+    <p class="sec-desc">Physical security follows the same defence-in-depth logic as cyber security. No single control is sufficient — layered, overlapping controls ensure that defeating one layer does not compromise the whole.</p>
+  </div>
+  <div class="ctrl-types-grid rv" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr));" id="principlesGrid"></div>
+</section>
+
+<hr class="divider">
+
+<!-- S2: ARCHITECTURE DIAGRAM -->
+<section class="sec" id="architecture">
+  <div class="sec-hd rv">
+    <div class="eyebrow bl">Section 02</div>
+    <h2 class="sec-h">Concentric Security <span class="bl">Architecture</span></h2>
+    <p class="sec-desc">Five security layers from the outer perimeter inward to the most sensitive core assets. Each layer presents an independent barrier that an intruder must defeat. Click any component to explore it in detail, or use the trace buttons to simulate an attacker's movement through the facility.</p>
+  </div>
+
+  <div class="ctrl rv">
+    <button class="cbtn c-gr" onclick="trace('visitor')">▶ Trace authorised visitor</button>
+    <button class="cbtn c-am" onclick="trace('employee')">▶ Trace employee access</button>
+    <button class="cbtn c-re" onclick="trace('intruder')">▶ Simulate intruder attempt</button>
+    <button class="cbtn c-bl" onclick="trace('emergency')">▶ Emergency evacuation</button>
+    <button class="cbtn" onclick="resetArch()">↺ Reset</button>
+    <span class="ctrl-hint">Click any component for details</span>
+  </div>
+  <div class="speed-row rv">
+    Animation speed:
+    <button class="cbtn" style="padding:3px 10px;font-size:9.5px;" onclick="setSpeed(600)">Fast</button>
+    <button class="cbtn" style="padding:3px 10px;font-size:9.5px;border-color:var(--border2);" onclick="setSpeed(1200)">Normal</button>
+    <button class="cbtn" style="padding:3px 10px;font-size:9.5px;" onclick="setSpeed(2000)">Slow</button>
+  </div>
+
+  <div class="arch-wrap rv">
+
+    <!-- Layer 1: Perimeter -->
+    <div class="layer l-perim">
+      <div class="layer-hd"><span class="layer-lbl">Layer 1 — Outer Perimeter</span><span class="layer-tag">First barrier · Maximum distance between threat and assets</span></div>
+      <div class="layer-body">
+        <div class="comp-row">
+          <div class="comp c-perim" id="c-fence"    onclick="show('fence')"><div class="comp-name">Perimeter fencing</div><div class="comp-sub">2.4m+ anti-climb · toppings</div></div>
+          <div class="comp c-perim" id="c-lighting" onclick="show('lighting')"><div class="comp-name">Security lighting</div><div class="comp-sub">PIR · area · CCTV support</div></div>
+          <div class="comp c-perim" id="c-signage"  onclick="show('signage')"><div class="comp-name">Security signage</div><div class="comp-sub">Deterrence · legal notices</div></div>
+          <div class="comp c-perim" id="c-patrol"   onclick="show('patrol')"><div class="comp-name">Guard patrol routes</div><div class="comp-sub">Scheduled & randomised</div></div>
+          <div class="comp c-perim" id="c-cctv-ext" onclick="show('cctv_ext')"><div class="comp-name">External CCTV</div><div class="comp-sub">PTZ · wide area coverage</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-arr">↓ &nbsp;Vehicle and pedestrian entry — all visitors challenged at the gate</div>
+
+    <!-- Layer 2: Outer Building -->
+    <div class="layer l-outer">
+      <div class="layer-hd"><span class="layer-lbl">Layer 2 — Vehicle Control & Entry Points</span><span class="layer-tag">Stop, assess, and authenticate before building entry</span></div>
+      <div class="layer-body">
+        <div class="comp-row">
+          <div class="comp c-outer" id="c-barrier"    onclick="show('barrier')"><div class="comp-name">Anti-ram barriers</div><div class="comp-sub">Bollards · rising arm · HVM</div></div>
+          <div class="comp c-outer" id="c-gatehouse"  onclick="show('gatehouse')"><div class="comp-name">Security gatehouse</div><div class="comp-sub">Staffed · visitor log</div></div>
+          <div class="comp c-outer" id="c-vlp"        onclick="show('vlp')"><div class="comp-name">ANPR / VLPS</div><div class="comp-sub">Plate recognition · logging</div></div>
+          <div class="comp c-outer" id="c-carpark"    onclick="show('carpark')"><div class="comp-name">Car park control</div><div class="comp-sub">Permit zones · CCTV</div></div>
+          <div class="comp c-outer" id="c-reception"  onclick="show('reception')"><div class="comp-name">Reception / lobby</div><div class="comp-sub">Visitor sign-in · ID check</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-arr">↓ &nbsp;Authenticated individuals proceed to controlled building interior</div>
+
+    <!-- Layer 3: Building Interior -->
+    <div class="layer l-inner">
+      <div class="layer-hd"><span class="layer-lbl">Layer 3 — Building Access Control</span><span class="layer-tag">Identity-verified, role-based access to all internal areas</span></div>
+      <div class="layer-body" style="display:flex;flex-direction:column;gap:5px;">
+        <div class="comp-row">
+          <div class="comp c-inner" id="c-mantrap"  onclick="show('mantrap')"><div class="comp-name">Mantrap / airlock</div><div class="comp-sub">Piggybacking prevention</div></div>
+          <div class="comp c-inner" id="c-card"     onclick="show('card')"><div class="comp-name">Card access system</div><div class="comp-sub">PACS · readers · audit log</div></div>
+          <div class="comp c-inner" id="c-biometric"onclick="show('biometric')"><div class="comp-name">Biometric readers</div><div class="comp-sub">Fingerprint · iris · face</div></div>
+          <div class="comp c-inner" id="c-pin"      onclick="show('pin')"><div class="comp-name">PIN / keypad</div><div class="comp-sub">Secondary factor</div></div>
+        </div>
+        <div class="comp-row">
+          <div class="comp c-inner"      id="c-visitor-mgmt"onclick="show('visitor_mgmt')"><div class="comp-name">Visitor management</div><div class="comp-sub">Pre-reg · badge · escort</div></div>
+          <div class="comp c-inner"      id="c-guard-desk"  onclick="show('guard_desk')"><div class="comp-name">Guard desk / SOC</div><div class="comp-sub">Alarm monitoring · response</div></div>
+          <div class="comp c-inner-core" id="c-pacs"        onclick="show('pacs')"><div class="comp-name">Physical Access Control System</div><div class="comp-sub">Central PACS · rules engine · SIEM integration</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-arr">↓ &nbsp;Authorised personnel only — access limited to assigned zones by role</div>
+
+    <!-- Layer 4: Sensitive Zones -->
+    <div class="layer l-core">
+      <div class="layer-hd"><span class="layer-lbl">Layer 4 — Sensitive & Restricted Zones</span><span class="layer-tag">Highest-value assets — additional independent access controls required</span></div>
+      <div class="layer-body">
+        <div class="comp-row">
+          <div class="comp c-core" id="c-serverroom" onclick="show('serverroom')"><div class="comp-name">Server room / DC cage</div><div class="comp-sub">Dual-factor · tailgate detect</div></div>
+          <div class="comp c-core" id="c-comms"      onclick="show('comms')"><div class="comp-name">Comms / MDF room</div><div class="comp-sub">Patching · network gear</div></div>
+          <div class="comp c-core" id="c-exec"       onclick="show('exec')"><div class="comp-name">Executive floor</div><div class="comp-sub">Board rooms · legal</div></div>
+          <div class="comp c-core" id="c-vault"      onclick="show('vault')"><div class="comp-name">Secure vault / media store</div><div class="comp-sub">Backups · classified docs</div></div>
+          <div class="comp c-core" id="c-lab"        onclick="show('lab')"><div class="comp-name">R&D / lab</div><div class="comp-sub">IP · prototypes</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-arr">↓ &nbsp;All movement monitored — events fed to physical security operations centre</div>
+
+    <!-- Layer 5: Monitoring -->
+    <div class="layer l-mon">
+      <div class="layer-hd"><span class="layer-lbl">Layer 5 — Security Operations & Monitoring</span><span class="layer-tag">Continuous oversight — integrates with cyber SOC for unified incident response</span></div>
+      <div class="layer-body">
+        <div class="comp-row">
+          <div class="comp c-mon" id="c-cctv-vms"  onclick="show('cctv_vms')"><div class="comp-name">CCTV / VMS</div><div class="comp-sub">Video management · analytics</div></div>
+          <div class="comp c-mon" id="c-alarm"     onclick="show('alarm')"><div class="comp-name">Intruder alarm</div><div class="comp-sub">PIR · door contacts · glass</div></div>
+          <div class="comp c-mon" id="c-env-mon"   onclick="show('env_mon')"><div class="comp-name">Environmental monitors</div><div class="comp-sub">Temp · humidity · water · smoke</div></div>
+          <div class="comp c-mon" id="c-intercom"  onclick="show('intercom')"><div class="comp-name">Intercom / video door</div><div class="comp-sub">Audio-visual challenge</div></div>
+          <div class="comp c-mon" id="c-psoc"      onclick="show('psoc')"><div class="comp-name">Physical SOC</div><div class="comp-sub">24/7 monitoring · dispatch</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="feedback-row">↺ &nbsp;PACS events, CCTV alerts, and environmental alarms forwarded to cyber SIEM for integrated incident correlation</div>
+  </div>
+
+  <div class="trace-bar" id="traceBar">
+    <span class="tb-step" id="tbStep">Step 0/0</span>
+    <span class="tb-name" id="tbName"></span>
+  </div>
+  <div class="detail-panel" id="detail"><div class="dp-hint">Click any component above to explore it in depth</div></div>
+</section>
+
+<hr class="divider">
+
+<!-- S3: CONTROL TYPES -->
+<section class="sec" id="control-types">
+  <div class="sec-hd rv">
+    <div class="eyebrow">Section 03</div>
+    <h2 class="sec-h">Physical Control <span class="hl">Categories</span></h2>
+    <p class="sec-desc">Every physical security control falls into one of four functional categories. Effective architecture requires all four — deterrents reduce likelihood, preventive controls stop entry, detective controls identify breaches, and corrective controls restore security.</p>
+  </div>
+  <div class="ctrl-types-grid rv">
+    <div class="ct-card ct-prev">
+      <span class="ct-icon">🛡️</span>
+      <div class="ct-title">Preventive controls</div>
+      <p class="ct-desc">Stop an attack or intrusion from occurring. Physical barriers that an attacker must defeat before reaching an asset.</p>
+      <ul class="ct-examples">
+        <li>Perimeter fencing and walls</li>
+        <li>Mantraps and airlocks</li>
+        <li>Anti-ram bollards and barriers</li>
+        <li>Reinforced doors and locks</li>
+        <li>Access control systems (PACS)</li>
+        <li>Safe and vault storage</li>
+      </ul>
+    </div>
+    <div class="ct-card ct-det">
+      <span class="ct-icon">👁️</span>
+      <div class="ct-title">Detective controls</div>
+      <p class="ct-desc">Identify and alert on security events in progress or after the fact. Reduce dwell time and enable rapid response.</p>
+      <ul class="ct-examples">
+        <li>CCTV / video surveillance</li>
+        <li>Motion and PIR sensors</li>
+        <li>Door and window contact sensors</li>
+        <li>Glass break detectors</li>
+        <li>PACS access logs and audit trails</li>
+        <li>Environmental monitoring (smoke, water)</li>
+      </ul>
+    </div>
+    <div class="ct-card ct-deter">
+      <span class="ct-icon">⚠️</span>
+      <div class="ct-title">Deterrent controls</div>
+      <p class="ct-desc">Discourage an attacker from attempting an intrusion. Increase perceived risk of detection and apprehension.</p>
+      <ul class="ct-examples">
+        <li>Visible CCTV cameras</li>
+        <li>Security lighting</li>
+        <li>Warning and trespass signs</li>
+        <li>Uniformed security guards</li>
+        <li>Patrol vehicles and dogs</li>
+        <li>Alarm warning decals and panels</li>
+      </ul>
+    </div>
+    <div class="ct-card ct-corr">
+      <span class="ct-icon">🔧</span>
+      <div class="ct-title">Corrective controls</div>
+      <p class="ct-desc">Restore security after a breach has occurred. Limit damage and prevent recurrence of the same attack vector.</p>
+      <ul class="ct-examples">
+        <li>Security guard response and dispatch</li>
+        <li>Police liaison and handover</li>
+        <li>Emergency lock-down procedures</li>
+        <li>Access card revocation</li>
+        <li>CCTV footage preservation</li>
+        <li>Post-incident security review</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="rv" style="margin-top:20px;">
+    <div class="eyebrow" style="margin-bottom:10px;">Layered defence matrix — which control type applies at each layer</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <table class="matrix-table">
+        <thead><tr><th>Security layer</th><th>Preventive controls</th><th>Detective controls</th><th>Deterrent controls</th><th>Corrective controls</th></tr></thead>
+        <tbody>
+          <tr><td>Outer perimeter</td><td>Fencing · walls · anti-climb toppings</td><td>External CCTV · perimeter sensors</td><td>Lighting · signage · visible cameras</td><td>Police call · guard response</td></tr>
+          <tr><td>Vehicle control</td><td>Anti-ram bollards · rising barriers · HVM</td><td>ANPR · CCTV at gates</td><td>Gatehouse staff · barrier markings</td><td>Barrier lockdown · emergency stop</td></tr>
+          <tr><td>Building entry</td><td>Mantrap · card + biometric · reinforced door</td><td>CCTV at entry · tailgate sensors · PACS log</td><td>Guard presence · camera housing visible</td><td>Card revocation · door lock-down</td></tr>
+          <tr><td>Sensitive zones</td><td>Double-factor access · reinforced cage · lock</td><td>Motion sensors · CCTV · rack access sensors</td><td>Warning signage · cage visibility</td><td>Emergency lock · asset tracking</td></tr>
+          <tr><td>Monitoring layer</td><td>Alarm verification before response</td><td>24/7 CCTV monitoring · real-time PACS alerts</td><td>Monitored alarm signage</td><td>Incident response · SIEM correlation</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- S4: ACCESS CONTROL TECHNOLOGY -->
+<section class="sec" id="access-control">
+  <div class="sec-hd rv">
+    <div class="eyebrow te">Section 04</div>
+    <h2 class="sec-h">Access Control <span class="te">Technology</span></h2>
+    <p class="sec-desc">Modern physical access control combines credential presentation with identity verification. Higher security zones require multiple independent factors — matching the Zero Trust principle of explicit verification applied to physical access.</p>
+  </div>
+  <div class="ac-grid rv" id="acGrid"></div>
+  <div class="ac-detail" id="acDetail"></div>
+</section>
+
+<hr class="divider">
+
+<!-- S5: SURVEILLANCE -->
+<section class="sec" id="surveillance">
+  <div class="sec-hd rv">
+    <div class="eyebrow pu">Section 05</div>
+    <h2 class="sec-h">Surveillance & <span class="pu">CCTV Architecture</span></h2>
+    <p class="sec-desc">A comprehensive CCTV system is both a deterrent and a detective control. Effective design ensures no blind spots, adequate resolution for identification, sufficient retention, and real-time monitoring integration.</p>
+  </div>
+
+  <div class="cctv-grid rv">
+    <div class="cctv-card">
+      <div class="cctv-hd">
+        <span class="cctv-hd-icon">📷</span>
+        <div><div class="cctv-hd-title" style="color:var(--blue2);">Camera types & placement</div><div class="cctv-hd-sub">Match camera spec to the surveillance objective</div></div>
+      </div>
+      <div class="cctv-body">
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--blue);"></div><div><strong>PTZ (Pan-Tilt-Zoom):</strong> Deployed at perimeter and vehicle entry points. Operator-controlled or auto-tracking. Covers wide areas and can zoom to read number plates or capture facial detail at distance.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--blue);"></div><div><strong>Fixed wide-angle:</strong> Lobbies, corridors, open office areas, car parks. Provides persistent coverage of high-traffic zones. Lower cost per camera than PTZ.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--blue);"></div><div><strong>Dome (vandal-resistant):</strong> Internal high-risk zones, server rooms, secure areas. Concealed direction of view discourages targeted obstruction by intruders.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--blue);"></div><div><strong>ANPR cameras:</strong> Vehicle entry and exit points. Read and log number plates automatically, cross-reference against approved vehicle register and law enforcement watchlists.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--blue);"></div><div><strong>Covert cameras:</strong> High-theft areas, investigation support. Concealed in everyday objects. Requires legal review under GDPR/DPA for employee monitoring use cases.</div></div>
+      </div>
+    </div>
+    <div class="cctv-card">
+      <div class="cctv-hd">
+        <span class="cctv-hd-icon">🖥️</span>
+        <div><div class="cctv-hd-title" style="color:var(--purple2);">Video Management System (VMS)</div><div class="cctv-hd-sub">Storage, monitoring, analytics, and integration</div></div>
+      </div>
+      <div class="cctv-body">
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--purple);"></div><div><strong>Storage:</strong> Minimum 31-day retention for most facilities; 90 days for secure sites. RAID-protected NVR or cloud storage. Encrypted at rest. Tamper-evident audit log on every access and export.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--purple);"></div><div><strong>Video analytics:</strong> AI-driven motion detection, object classification (person / vehicle / package), loitering detection, perimeter trip-wire alerts, crowd density monitoring.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--purple);"></div><div><strong>PACS integration:</strong> Camera associated with each access reader — when a card is swiped, footage from adjacent camera is automatically tagged with the credential used. Simplifies investigations.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--purple);"></div><div><strong>SIEM integration:</strong> CCTV alerts (motion detection, camera tamper, offline camera) forwarded to the cyber SIEM as structured events for cross-correlation with logical access events.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--purple);"></div><div><strong>Legal & privacy:</strong> Prominent CCTV signage required (GDPR/DPA in UK/EU). Data subject access request process. Footage access restricted to authorised personnel. Disposal procedure on retention expiry.</div></div>
+      </div>
+    </div>
+    <div class="cctv-card">
+      <div class="cctv-hd">
+        <span class="cctv-hd-icon">⚡</span>
+        <div><div class="cctv-hd-title" style="color:var(--amber2);">Intruder detection systems</div><div class="cctv-hd-sub">Sensor types, zones, and grading</div></div>
+      </div>
+      <div class="cctv-body">
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--amber);"></div><div><strong>PIR sensors:</strong> Passive infrared detectors covering movement within a defined zone. Dual-technology (PIR + microwave) reduces false alarms. Grade 3 sensors required for high-risk premises.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--amber);"></div><div><strong>Door and window contacts:</strong> Magnetic contacts detect opening of any protected aperture. Wired preferred over wireless for tamper resistance in secure zones.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--amber);"></div><div><strong>Glass break detectors:</strong> Acoustic sensors tuned to the frequency of breaking glass. Covers multiple windows from one device. Used at ground-floor perimeter.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--amber);"></div><div><strong>Vibration detectors:</strong> Detect physical attack on walls, safes, or cabinets. Used in high-security server rooms and media vaults to detect forced entry attempts.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--amber);"></div><div><strong>Alarm grading (EN 50131):</strong> Grade 1 (low risk) to Grade 4 (high risk). Grade determines required sensor specification, signalling path redundancy, and response time contractual SLA.</div></div>
+      </div>
+    </div>
+    <div class="cctv-card">
+      <div class="cctv-hd">
+        <span class="cctv-hd-icon">🔗</span>
+        <div><div class="cctv-hd-title" style="color:var(--green2);">Physical-cyber integration</div><div class="cctv-hd-sub">Bridging the physical and logical security domains</div></div>
+      </div>
+      <div class="cctv-body">
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--green);"></div><div><strong>PACS-SIEM feed:</strong> All access events (granted, denied, forced door, tailgate) forwarded to the SIEM. Correlate after-hours badge access with VPN logon from same user — confirms or rules out account sharing.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--green);"></div><div><strong>Impossible physical travel:</strong> User badged at London office 10 minutes after a cyber event registered at the Singapore office — flags either credential sharing or remote session compromise.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--green);"></div><div><strong>Insider threat detection:</strong> After-hours badge access to server room correlated with large data download from file server — UEBA detects the combination and escalates to SOC.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--green);"></div><div><strong>Unified incident response:</strong> Physical security operations and cyber SOC share a common incident platform — a physical intrusion alert and a simultaneous network anomaly are correlated into a single IR ticket.</div></div>
+        <div class="cctv-item"><div class="cctv-dot" style="background:var(--green);"></div><div><strong>ICS/OT protection:</strong> Physical security directly protects industrial control systems. Unauthorised physical access to a substation or SCADA panel can cause more damage than a cyber attack via the same path.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- S6: DATA CENTRE SECURITY -->
+<section class="sec" id="data-centre">
+  <div class="sec-hd rv">
+    <div class="eyebrow gr">Section 06</div>
+    <h2 class="sec-h">Data Centre <span class="gr">Physical Security</span></h2>
+    <p class="sec-desc">Data centres require the highest level of physical security — a single physical breach can be more damaging than years of network-based attacks. Tier classification directly drives physical security requirements.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 40px;" class="rv pipeline-2col">
+    <div class="pipeline" id="dcPipeL"></div>
+    <div class="pipeline" id="dcPipeR"></div>
+  </div>
+
+  <div class="rv" style="margin-top:24px;">
+    <div class="eyebrow gr" style="margin-bottom:10px;">Data centre tier comparison (Uptime Institute)</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <table class="std-table">
+        <thead><tr><th>Tier</th><th>Physical security requirement</th><th>Availability target</th><th>Typical use</th></tr></thead>
+        <tbody>
+          <tr><td>Tier I</td><td>Basic perimeter, single access point, CCTV optional</td><td>99.671% (28.8 hrs downtime/yr)</td><td>Small office server room</td></tr>
+          <tr><td>Tier II</td><td>Access control, CCTV, redundant power with UPS, raised floor</td><td>99.741% (22 hrs downtime/yr)</td><td>Departmental data centre</td></tr>
+          <tr><td>Tier III</td><td>Multi-factor access, mantrap, CCTV, on-site security team, dual power paths</td><td>99.982% (1.6 hrs downtime/yr)</td><td>Enterprise / co-location</td></tr>
+          <tr><td>Tier IV</td><td>Dual-factor biometric, full mantrap, 24/7 armed guard, ANPR, visitor escorted, all cages locked</td><td>99.995% (26 min downtime/yr)</td><td>Hyperscale / financial / gov</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- S7: ENVIRONMENTAL -->
+<section class="sec" id="environment">
+  <div class="sec-hd rv">
+    <div class="eyebrow or">Section 07</div>
+    <h2 class="sec-h">Environmental <span class="or">Control Systems</span></h2>
+    <p class="sec-desc">Environmental threats — fire, flooding, power failure, extreme temperature — can cause more damage than a deliberate physical attack. Environmental controls are as essential as access controls for protecting critical infrastructure.</p>
+  </div>
+  <div class="env-grid rv" id="envGrid"></div>
+</section>
+
+<hr class="divider">
+
+<!-- S8: IR SCENARIOS -->
+<section class="sec" id="scenarios">
+  <div class="sec-hd rv">
+    <div class="eyebrow re">Section 08</div>
+    <h2 class="sec-h">Incident Response <span class="re">Scenarios</span></h2>
+    <p class="sec-desc">Three real-world scenarios that physical security teams face regularly. Each walkthrough shows the detection trigger, response steps, and how physical controls integrate with the cyber SOC.</p>
+  </div>
+  <div class="rv">
+    <div class="sc-tabs">
+      <button class="stab on" onclick="switchSc('a',this)">Scenario A — Unauthorised access attempt</button>
+      <button class="stab" onclick="switchSc('b',this)">Scenario B — Insider tailgating to server room</button>
+      <button class="stab" onclick="switchSc('c',this)">Scenario C — Suspicious package / bomb threat</button>
+    </div>
+    <div class="sc-body show" id="sc-a">
+      <div class="sc-desc"><strong>Trigger:</strong> CCTV video analytics fires a perimeter intrusion alert at 02:14 on a Saturday. A person has climbed the outer fence at the north-east corner, away from the gatehouse. Motion detectors in the external lighting zone are also triggered. Walk through the full physical security response.</div>
+      <div class="ir-steps" id="irA"></div>
+      <div style="margin-top:12px;display:flex;gap:7px;">
+        <button class="cbtn c-am" onclick="runIR('a')">▶ Run all steps</button>
+        <button class="cbtn" onclick="resetIR('a')">↺ Reset</button>
+      </div>
+    </div>
+    <div class="sc-body" id="sc-b">
+      <div class="sc-desc"><strong>Trigger:</strong> PACS audit log shows an access event at the server room door that was preceded by a long door-open time (14 seconds) indicating a potential tailgate. The legitimate cardholder's access profile does not match the server room zone. CCTV at the door shows two people entering on one badge swipe.</div>
+      <div class="ir-steps" id="irB"></div>
+      <div style="margin-top:12px;display:flex;gap:7px;">
+        <button class="cbtn c-am" onclick="runIR('b')">▶ Run all steps</button>
+        <button class="cbtn" onclick="resetIR('b')">↺ Reset</button>
+      </div>
+    </div>
+    <div class="sc-body" id="sc-c">
+      <div class="sc-desc"><strong>Trigger:</strong> An employee reports a suspicious unattended package in the main reception area. The package is not addressed and the delivery has no record in the visitor management system. The building security manager receives the call and initiates the suspicious package response protocol.</div>
+      <div class="ir-steps" id="irC"></div>
+      <div style="margin-top:12px;display:flex;gap:7px;">
+        <button class="cbtn c-am" onclick="runIR('c')">▶ Run all steps</button>
+        <button class="cbtn" onclick="resetIR('c')">↺ Reset</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- S9: STANDARDS -->
+<section class="sec" id="standards">
+  <div class="sec-hd rv">
+    <div class="eyebrow bl">Section 09</div>
+    <h2 class="sec-h">Standards & <span class="bl">Compliance Framework</span></h2>
+    <p class="sec-desc">Physical security is addressed by multiple international and national standards. Alignment with these standards is required for regulated industries, government contracts, and ISO 27001 certification.</p>
+  </div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;" class="rv">
+    <table class="std-table">
+      <thead><tr><th>Standard / framework</th><th>Scope</th><th>Physical security requirements</th><th>Sector</th></tr></thead>
+      <tbody>
+        <tr><td>ISO 27001:2022 — Annex A.7</td><td>Physical and environmental security controls for information security</td><td>Physical security perimeter, entry controls, securing offices, protecting against threats, working in secure areas, clear desk policy, equipment security, cabling security, screen lock</td><td>All sectors</td></tr>
+        <tr><td>NIST SP 800-53 (PE family)</td><td>US federal physical and environmental protection controls</td><td>PE-1 to PE-23: physical access authorisation, access control, visitor access, monitoring, power equipment, emergency power, fire protection, temperature control, water damage, delivery and removal</td><td>US federal / DoD</td></tr>
+        <tr><td>PCI DSS v4.0 (Req. 9)</td><td>Physical security for payment card data environments</td><td>Restrict physical access to cardholder data environment, badge access to sensitive areas, monitor and log all physical access, protect point-of-interaction devices, visitor procedures, media controls</td><td>Payment / retail</td></tr>
+        <tr><td>CPNI Security of Premises</td><td>UK government guidance for protecting sensitive sites</td><td>Site survey methodology, threat assessment, protective security measures for government facilities, hostile vehicle mitigation, counter-surveillance, staff screening</td><td>UK government / CNI</td></tr>
+        <tr><td>EN 50131 (Intruder Alarms)</td><td>European standard for intruder and hold-up alarm systems</td><td>System grading (Grade 1–4), environmental classification, reliability requirements, signalling and monitoring requirements, installer certification</td><td>All sectors (EU)</td></tr>
+        <tr><td>BS 8243 (Intruder Alarm)</td><td>UK code of practice for intruder alarm installation</td><td>Grade 2–4 system design, false alarm management, police response requirements, ARC monitoring centre requirements, keyholding procedures</td><td>UK — commercial / residential</td></tr>
+        <tr><td>Uptime Institute Tier Standards</td><td>Data centre infrastructure reliability and security classification</td><td>Tier I–IV physical security requirements, access control, guard requirements, delivery procedures, visitor management, environmental monitoring standards</td><td>Data centres</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- S10: QUICK REF -->
+<section class="sec" id="reference">
+  <div class="sec-hd rv">
+    <div class="eyebrow">Section 10</div>
+    <h2 class="sec-h">Quick <span class="hl">Reference</span></h2>
+    <p class="sec-desc">Key specifications, response times, retention standards, and the 4D framework for physical security design.</p>
+  </div>
+  <div class="qref-grid rv" id="qrefGrid"></div>
+</section>
+
+</main>
+</div><!-- /page-wrap -->
+
+<footer>
+  <div class="footer-inner">
+    <a href="index.html" class="footer-back">← Back to library</a>
+    <div class="footer-meta">SecArch Lab · Track A · Diagram 17 · Physical Security Architecture · github.com/mizanpranto/secarch-lab</div>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  COMPONENT DATA
+// ═══════════════════════════════════════════════════
+const D={
+fence:{z:'Layer 1 — Outer Perimeter',t:'Perimeter Fencing',s:'Physical boundary — first barrier between public and private space',
+  d:'The perimeter fence establishes the legal and physical boundary of the site. It serves primarily as a delay mechanism — buying time for detection and response — rather than an impenetrable barrier. Anti-climb toppings and ground protection prevent easy scaling or undermining.',
+  p:['Minimum 2.4m height for commercial sites; 3m+ for high-security facilities','Anti-climb toppings: rotating spikes (low-risk sites), expanded metal (medium), razor wire or electric (high-security)','Ground level: bury base or fit concrete foundation to prevent under-fence access','Inspection gaps: allow CCTV line-of-sight from inside the fence to detect approaches','LPS 1175 security rating defines forced-entry resistance — BR1 (tool-free) to BR6 (power tools, extended time)'],
+  tags:['LPS 1175','Anti-climb','Delay barrier','CPNI guidance']},
+lighting:{z:'Layer 1 — Outer Perimeter',t:'Security Lighting',s:'Deters attack, supports CCTV, and reveals intruder movement',
+  d:'Security lighting is simultaneously a deterrent and a detection enabler. Well-lit perimeters make CCTV footage usable for identification, deter casual intruders who prefer darkness, and allow guard patrols to spot threats at greater range.',
+  p:['PIR-triggered floodlights for isolated areas — sudden illumination is a strong deterrent','Permanent area lighting (20–50 lux) for vehicle routes, parking, and building facades','CCTV support: cameras must be rated for the illumination level — minimum 0.1 lux for monochrome IP cameras','Backup power: security lighting on emergency circuits — does not fail on main power outage','Light trespass compliance: avoid spillage onto neighbouring properties per BS 5489 guidance'],
+  tags:['BS 5489','PIR triggered','CCTV support','Emergency circuit']},
+signage:{z:'Layer 1 — Outer Perimeter',t:'Security Signage',s:'Legal deterrence, CCTV notices, and trespass warnings',
+  d:'Correct signage fulfils legal obligations (CCTV notices under GDPR/DPA), deters intruders by communicating the presence of security systems, and helps establish clear legal liability in the event of prosecution for trespass or damage.',
+  p:['CCTV notices required at every camera under ICO guidance — must state data controller, purpose, and contact details','Trespass notices: "Private property — no unauthorised access" establishes legal standing for prosecution','Alarm system signage: warning boxes communicate monitoring status to potential intruders','ACS notices: "Access controlled premises — all visitors must report to reception"','Vehicle signage: ANPR warning notices legally required under DPA where number plates are processed']},
+patrol:{z:'Layer 1 — Outer Perimeter',t:'Guard Patrol Routes',s:'Mobile detection and deterrence — randomised scheduling',
+  d:'Guard patrols provide dynamic detection capability that static sensors cannot replicate. A trained officer can spot anomalies, investigate alerts, and deter opportunistic crime through visible presence. Critically, patrol routes must be randomised to prevent being bypassed by a surveillance-aware attacker.',
+  p:['Planned patrol routes cover all perimeter, entry points, car parks, and isolated areas','Guard tour systems (NFC or QR checkpoints) verify that patrols are completed at each location with timestamps','Randomised scheduling: patrol start times and route order randomised within a frequency window — not fixed schedule','Lone worker safety: guard tracking system, regular radio check-ins, personal attack alarms','CCTV operator support: control room operator can monitor guards in real time and redirect based on camera activity'],
+  tags:['Guard tour system','Randomised routes','Lone worker safety','CCTV integration']},
+cctv_ext:{z:'Layer 1 — Outer Perimeter',t:'External CCTV',s:'Wide-area PTZ and fixed cameras — full perimeter coverage',
+  d:'External CCTV forms the eyes of the physical security system. Camera placement must ensure no blind spots in the perimeter, adequate image quality for identification, and sufficient coverage to capture the approach path, point of entry, and direction of travel after a breach.',
+  p:['Coverage design: BS 8418 outlines camera placement for detection vs identification vs recognition quality','Detection: 10% of image height — confirms a person is present; recognition: 50%; identification: 120%+','PTZ at key points (corners, gates) for operator-directed view; fixed cameras at fixed high-risk areas','Night performance: IR illuminated cameras for zero-light perimeter; thermal for complete darkness detection','Video analytics: perimeter trip-wire alerts, loitering detection, abandoned object detection, direction of travel'],
+  tags:['BS 8418','Detection vs identification','PTZ + fixed','Video analytics']},
+barrier:{z:'Layer 2 — Vehicle Control',t:'Anti-Ram Barriers & HVM',s:'Hostile vehicle mitigation — crash-rated vehicle control',
+  d:'Hostile Vehicle Mitigation (HVM) protects against vehicle-borne attacks — either by ramming into a building or using a vehicle to breach a controlled entry point. HVM is critical for all publicly accessible sites in the UK following multiple vehicle-ramming incidents.',
+  p:['PAS 68 / IWA 14 crash ratings: define stopping performance (e.g. N2a = 7500kg HGV at 64 km/h)','Shallow-foundation bollards for urban environments where deep piling is impractical — standoff of 3–5m from building face','Rising arm barriers and drop bollards for vehicle gate control — height of 1000mm minimum','Planters, benches, and street furniture used as covert HVM in public-facing environments','Integration with ANPR: barrier does not rise until a valid plate has been read and verified'],
+  tags:['PAS 68','IWA 14','HVM','Crash rated']},
+gatehouse:{z:'Layer 2 — Vehicle Control',t:'Security Gatehouse',s:'Staffed entry point — first human challenge layer',
+  d:'The staffed gatehouse is the most effective single deterrent and detection control at the site perimeter. A trained officer challenging every vehicle and person entering the site prevents tailgating, challenges anomalous behaviour, and provides an immediate human response capability.',
+  p:['Visitor pre-registration: all expected visitors notified 24h in advance; reception contacts expected visitors to confirm','ID check: government photo ID or corporate badge required for all entrants; no exceptions for executives','Vehicle search capability: physical inspection of vehicle (especially for high-security sites) — under bonnet, boot, and underside using mirror','Intercom before gate: audio-visual challenge before the barrier rises — vehicle and occupants assessed before entry','Panic alarm, direct police line, and CCTV monitoring from control room — guard is never isolated'],
+  tags:['Visitor pre-registration','ID check','Vehicle challenge','Control room link']},
+vlp:{z:'Layer 2 — Vehicle Control',t:'ANPR / Vehicle Log & Plate System',s:'Automatic Number Plate Recognition — access & forensics',
+  d:'ANPR systems automatically read, log, and compare number plates against approved vehicle registers, watchlists, and law enforcement databases. Every vehicle entering and leaving the site is recorded with timestamp — creating an audit trail that is essential for incident investigation.',
+  p:['Read rate: modern ANPR systems achieve 98%+ accuracy in appropriate lighting conditions','Watchlist checking: plates cross-referenced against stolen vehicle lists, law enforcement intelligence, and internal reject lists in real time','Approved list: corporate vehicles and regular visitors enrolled — barrier lifts automatically on recognition','Retention: ANPR data is personal data under GDPR — must be retained only as long as necessary, with documented justification','Integration: ANPR events forwarded to SIEM — correlate vehicle entry with PACS access events for full visit trail'],
+  tags:['ANPR','PAS 68','GDPR compliance','SIEM integration']},
+carpark:{z:'Layer 2 — Vehicle Control',t:'Car Park Access Control',s:'Zone-based permit system — visitor vs staff segregation',
+  d:'Car parks are a significant surveillance gap in many facilities. Unsupervised vehicle access adjacent to a building provides an attacker with cover for extended reconnaissance, a staging area, or a position for a vehicle-borne threat.',
+  p:['Permit zones: staff, visitor, and contractor bays segregated and enforced by barrier or ANPR','CCTV coverage: every bay visible from at least one camera — no blind corners between vehicles','Lighting: minimum 20 lux at ground level across all areas — reduce shadow and improve camera image quality','Emergency call points: panic buttons at regular intervals throughout the car park connected to control room','Staff awareness: lone worker procedures for after-hours parking — direct control room contact when returning to vehicles']},
+reception:{z:'Layer 2 — Vehicle Control',t:'Reception & Lobby Control',s:'Visitor sign-in · ID verification · escort assignment',
+  d:'The reception lobby is the final check before a person gains access to the building. It is also the most public-facing layer — requiring a balance between a welcoming corporate environment and effective access control. Visitor management software automates pre-registration, ID capture, and NDA signature.',
+  p:['Visitor management system: digital sign-in, photo capture, ID scan, badge printing, pre-booked visit confirmation','NDA and site rules acceptance at reception — digital signature captured and stored against visit record','Temporary visitor badges: clearly identifiable (colour/text) — worn visibly at all times, collected on exit','Mandatory escort: no visitor proceeds beyond reception without an escorting host who maintains supervision throughout','Tailgate prevention: reception desk positioned to observe mantrap or turnstile — receptionist challenges unescorted individuals'],
+  tags:['Visitor management','Photo ID','Escort policy','Tailgate prevention']},
+mantrap:{z:'Layer 3 — Building Access',t:'Mantrap / Security Airlock',s:'Single-occupancy access control — prevents piggybacking',
+  d:'A mantrap (also called an airlock or security lobby) is a two-door access control chamber that can only hold one person at a time. After the outer door closes and the person\'s credentials are verified, the inner door can open. This physically prevents tailgating — the most common access control bypass.',
+  p:['One-person-at-a-time chamber: sensors detect occupancy — inner door cannot open if outer door is still open','Biometric or dual-factor verification inside the mantrap — card swipe at outer door, biometric at inner door','Anti-passback: the card used to enter cannot be used to enter again until it has been used to exit — prevents one card letting in two people','Weight sensing: some high-security mantraps use floor scales — alert if weight suggests more than one person','Emergency egress: fail-safe design — both doors unlock on fire alarm; fail-secure otherwise (both lock on power failure for secure areas)'],
+  tags:['Anti-piggybacking','Anti-passback','Fail-safe/fail-secure','Dual-factor']},
+card:{z:'Layer 3 — Building Access',t:'Card Access Control System (PACS)',s:'Contactless smart cards — role-based zone access',
+  d:'The Physical Access Control System (PACS) is the backbone of building access management. Smart card credentials are issued to all personnel and programmed to allow access only to the zones required for their role. Every access event — granted or denied — is logged with timestamp, cardholder, and location.',
+  p:['MIFARE DESFire EV3 or HID iClass SE: encrypted credentials with mutual authentication — cannot be cloned by commodity readers','RFID credential cloning prevention: Faraday-shielded cards, private sector encoding, regular re-encoding of compromised cards','Role-based access profiles: employee roles mapped to zone permissions — IT staff can reach comms rooms, not executive floor','Access hours restriction: card valid only during assigned working hours — 24/7 access requires explicit approval','PACS-HR integration: on termination, access automatically revoked within 1 hour of HR action — no manual process required'],
+  tags:['MIFARE DESFire','Anti-cloning','Role-based','PACS-HR integration']},
+biometric:{z:'Layer 3 — Building Access',t:'Biometric Access Readers',s:'Fingerprint · iris · facial recognition — high-assurance identity',
+  d:'Biometric readers verify a person\'s physical identity rather than just their credential. They are used as a second factor at high-security zones — a stolen card alone cannot grant access. Biometrics cannot be lost, forgotten, or shared, but they present GDPR special-category data handling requirements.',
+  p:['Fingerprint: most widely deployed — 0.1% FAR (false acceptance rate) achievable with quality readers. Vulnerable to spoofing without liveness detection','Iris recognition: higher accuracy than fingerprint, harder to spoof — used in data centres and government secure rooms','Facial recognition: camera-based, contactless — convenient for high-throughput entry points but GDPR highly regulated in UK/EU','Liveness detection: essential for fingerprint and facial — prevents spoofing with photographs, lifted prints, or silicone replicas','GDPR compliance: biometric data is special-category — requires explicit consent or legitimate interest legal basis, Data Protection Impact Assessment mandatory'],
+  tags:['GDPR special category','FAR/FRR','Liveness detection','DPIA required']},
+pin:{z:'Layer 3 — Building Access',t:'PIN / Keypad Systems',s:'Knowledge factor — secondary authentication or standalone',
+  d:'PIN-based keypads provide a knowledge factor for multi-factor access control. When combined with a card (something you have), they provide two-factor authentication at the point of entry. PINs can be shared or shoulder-surfed — they are weakest when used as the sole access control.',
+  p:['Four or six-digit PIN combined with card access: suitable for medium-security areas (comms rooms, document stores)','PIN change policy: PINs must be changed every 90 days for high-security zones; unique PINs per person, no group PINs','Shoulder surfing protection: recessed keypad, privacy surround, or randomised key layout (numbers change position on every use)','Duress PIN: secondary PIN that grants access but silently alerts security operations — used when staff are coerced','Anti-brute-force lockout: keypad locks after 5 incorrect attempts — triggers alarm and CCTV review'],
+  tags:['Multi-factor','Duress PIN','Anti-brute-force','Randomised layout']},
+visitor_mgmt:{z:'Layer 3 — Building Access',t:'Visitor Management System',s:'Pre-registration · digital sign-in · badge · audit trail',
+  d:'A formal visitor management process is required by ISO 27001 and PCI DSS. It ensures every person present in the facility is known, has a documented reason to be there, and can be quickly located during an emergency evacuation.',
+  p:['Pre-registration: hosts submit visitor details 24h in advance — name, organisation, vehicle reg, purpose of visit','Identity verification: government photo ID inspected and recorded at reception for all visitors','Digital badge printing: time-limited visitor badge with photo, host name, valid date, and access zones printed','Escort requirement: visitor never left unaccompanied in building — host responsible for supervision throughout visit','Emergency roll call: visitor management system generates live list of all persons on site — used for evacuation accounting'],
+  tags:['ISO 27001 control','PCI DSS Req 9','Emergency roll call','Pre-registration']},
+guard_desk:{z:'Layer 3 — Building Access',t:'Security Operations Desk',s:'Central monitoring, alarm response, and dispatch',
+  d:'The physical security operations desk is the command and control centre for the site. Guards monitor CCTV feeds, receive PACS and alarm system alerts, dispatch patrol officers to investigate, and maintain contact with external emergency services.',
+  p:['CCTV monitoring: operator manages VMS, responds to analytics alerts, and manually reviews flagged cameras','Alarm management: all intruder, fire, and environmental alarms presented on single console with acknowledgement audit trail','Dispatch: radio communication with patrol officers and gatehouse — response time KPI measured and reported','Access control override: operator can remotely lock or unlock any door — used for emergency lockdown or evacuation support','Incident log: all events recorded with timestamps — feeds into incident management system and SIEM integration'],
+  tags:['Central monitoring','Alarm management','Radio dispatch','SIEM forwarding']},
+pacs:{z:'Layer 3 — Building Access',t:'Physical Access Control System (Central)',s:'Rules engine · audit log · HR integration · SIEM feed',
+  d:'The central PACS is the authoritative platform for all physical access decisions. It enforces access policies, maintains the full audit trail of every access event, integrates with HR for automatic provisioning and revocation, and feeds events to the cyber SIEM for cross-domain correlation.',
+  p:['Real-time rules engine: evaluates credential, time of day, zone, anti-passback status, and alert level before granting access','Comprehensive audit log: every access attempt (granted and denied) logged with cardholder ID, reader ID, timestamp, and door status','HR system integration: new starters automatically provisioned; leavers access revoked within 1 hour of HR offboarding action','Cyber SIEM integration: access events forwarded in real time — SIEM correlates physical badge swipe with logical network login','Threat level escalation: PACS can restrict access to essential personnel only when site threat level is elevated'],
+  tags:['Anti-passback','HR integration','SIEM feed','Real-time rules engine']},
+serverroom:{z:'Layer 4 — Sensitive Zones',t:'Server Room / Data Centre Cage',s:'Highest physical security — dual-factor, tailgate detection',
+  d:'The server room or data centre cage is the most critical physical zone in most organisations. Unauthorised access provides direct, immediate, unmonitored access to every piece of hardware — bypassing all network security controls completely. Physical controls must match or exceed the cyber controls they protect.',
+  p:['Dual-factor access: card PLUS biometric (fingerprint or iris) required — a single stolen credential cannot grant entry','Tailgate detection: door contact plus weight sensor or people-counter — alert if two people enter on one access event','CCTV inside the server room: camera covering every aisle and rack — continuous recording with 90-day retention','Rack-level access control: individual rack doors with electronic locks and their own audit trail — catches internal threat within the room','No "working alone" policy: two-person rule for access during out-of-hours periods — cross-reference with CCTV recording'],
+  tags:['Dual-factor','Tailgate detection','Rack access control','Two-person rule']},
+comms:{z:'Layer 4 — Sensitive Zones',t:'Comms / MDF Room',s:'Network infrastructure — patch panels, switches, routers',
+  d:'The communications or Main Distribution Frame (MDF) room contains the network switching and patching infrastructure. Physical access provides the ability to install unauthorised network taps, rogue devices, or directly connect to any network segment bypassing all access control lists and firewall rules.',
+  p:['Access restricted to network engineering team only — other IT roles cannot access without documented authorisation and escort','No remote hands without supervision: third-party contractors must be escorted by an authorised internal engineer throughout','CCTV coverage with analytics: camera directly facing patch panels — any cable insertion or removal visible and timestamped','Device inventory: all installed equipment photographed on installation and any changes trigger a CMDB update and audit notification','Rogue device scanning: 802.1X port-based authentication prevents unauthorised devices connecting — or triggers an alert to the SOC'],
+  tags:['Network tap prevention','802.1X','CMDB integration','Escorted access']},
+exec:{z:'Layer 4 — Sensitive Zones',t:'Executive Floor',s:'Board rooms · CEO office · legal · HR',
+  d:'The executive floor contains the most sensitive non-technical information: board strategy, M&A plans, HR records, legal documents, and commercially sensitive conversations. Physical security here prevents both opportunistic eavesdropping and targeted intelligence gathering.',
+  p:['Access restricted to executive staff and pre-approved visitors — no general employee access even during normal hours','Technical surveillance countermeasures (TSCM): periodic sweeps for covert listening devices, particularly before major strategic meetings','Clean desk policy enforcement: all documents secured in locked cabinets when the desk is unoccupied — spot checks by security team','SCIF-equivalent meeting rooms for most sensitive discussions: RF-shielded, acoustically isolated, no electronic devices permitted','Visitor escort throughout: no visitor left unaccompanied — particularly important given the sensitivity of overheard information'],
+  tags:['TSCM sweeps','Clean desk','RF shielding','No unaccompanied visitors']},
+vault:{z:'Layer 4 — Sensitive Zones',t:'Secure Vault / Media Store',s:'Backup media · classified documents · cryptographic material',
+  d:'The secure vault stores physical media (backup tapes, HSMs, USB drives), cryptographic key material, and classified paper documents. Loss or theft of backup media can expose the same data as a server breach — physical security of media must match the classification of its content.',
+  p:['LPS 1175 SR4+ rated vault door: resists extended attack with industrial power tools','Climate controlled: temperature 15–25°C, humidity 45–65% — preventing media degradation during long-term storage','Two-person integrity (TPI): vault access requires two authorised individuals simultaneously — prevents solo insider access','Media inventory: every item logged in and out with timestamp, custodian identity, and reason for access','Cryptographic material: HSM hardware security modules stored in vault when not in use — never accessible to a single person'],
+  tags:['LPS 1175 SR4','Two-person integrity','Climate controlled','Crypto material']},
+lab:{z:'Layer 4 — Sensitive Zones',t:'R&D / Research Laboratory',s:'Prototypes · IP · proprietary research',
+  d:'Research and development laboratories contain the intellectual property that represents the organisation\'s future commercial value. Industrial espionage via physical access to prototypes or research documents can have a catastrophic commercial impact, and may not be discovered for months.',
+  p:['Access restricted to R&D personnel only — no cross-team access without formal documented authorisation','Photography policy: no personal devices in lab — corporate cameras permitted and log-tracked for each use','Clean desk: all research documents locked away when not actively in use — prototype devices stored in locked cabinets','Exit search capability: random searches of bags and clothing on exit from sensitive labs — prevents removal of prototypes','Supply chain verification: all equipment entering the lab checked for tampering or rogue components before installation'],
+  tags:['IP protection','Photography policy','Exit searches','Supply chain checks']},
+cctv_vms:{z:'Layer 5 — Monitoring',t:'CCTV / Video Management System',s:'Centralised recording, monitoring, and analytics platform',
+  d:'The Video Management System is the central platform for all camera feeds, recording, and analytics. It is the primary tool used by the physical SOC for real-time monitoring and by investigators for post-incident review.',
+  p:['Minimum 31-day recording retention for commercial sites; 90 days for high-security data centres','Encrypted storage: recording media encrypted at rest — prevents footage being copied and reviewed if storage is physically removed','Access control to VMS: role-based access — operators can view live feeds; investigators can review historical footage; administrators manage system','Tamper detection: camera obstruction, offline cameras, and recording gaps generate immediate alerts to the operator','Forensic export: evidential footage exported in tamper-evident format with digital signature — admissible in legal proceedings'],
+  tags:['31-day retention','Encrypted storage','Tamper detection','Evidential export']},
+alarm:{z:'Layer 5 — Monitoring',t:'Intruder Alarm System',s:'PIR, contacts, glass break — EN 50131 graded system',
+  d:'The intruder alarm system provides the primary off-hours detection capability. When the building is empty and CCTV monitoring is reduced, the alarm system becomes the first line of detection and response.',
+  p:['Grade 3 (EN 50131) for commercial sites with significant assets: high-security sensors, encrypted signalling to Alarm Receiving Centre','Alarm Receiving Centre (ARC): signals monitored by a BSI-accredited ARC 24/7 — response protocol defined in contract','Police response: confirmed alarm (two signals required) results in police dispatch — single signal requires keyholder response first','False alarm management: BS 8243 defines acceptable false alarm rates — exceeding thresholds risks police response withdrawal','Duress codes: staff can signal a coerced alarm set (e.g., being forced to arm the alarm by an intruder) — sends silent alert to ARC'],
+  tags:['EN 50131 Grade 3','ARC monitoring','Confirmed alarm','Duress code']},
+env_mon:{z:'Layer 5 — Monitoring',t:'Environmental Monitoring',s:'Temperature · humidity · water · smoke · power',
+  d:'Environmental monitoring protects against non-deliberate threats that can cause as much damage as a physical attack. A server room flood, fire, or temperature excursion can destroy years of backups, cause irreplaceable hardware loss, and trigger a major business continuity event.',
+  p:['Temperature and humidity: monitored at rack level in server rooms — alert at 27°C, automated cooling response at 30°C, shutdown protocol at 35°C','Flood detection: water detection strips below raised floors and under cooling units — immediate alert on contact','Smoke and fire: Very Early Smoke Detection Apparatus (VESDA) in server rooms — detects smoke at concentrations far below standard detector threshold','Power monitoring: UPS load, generator fuel level, utility power quality — alerts on voltage sag, frequency deviation, or UPS bypass','All environmental alerts forwarded to SIEM: power events correlated with system availability data for root cause analysis'],
+  tags:['VESDA','UPS monitoring','Flood detection','SIEM integration']},
+intercom:{z:'Layer 5 — Monitoring',t:'Intercom & Video Door Entry',s:'Audio-visual challenge before remote door release',
+  d:'Video door entry systems allow operators in the physical SOC to challenge visitors at an unmanned entry point before remotely releasing the door lock. They are the standard solution for after-hours entry to buildings where a guard cannot be stationed at every access point.',
+  p:['HD camera at every intercom: operator can see visitor clearly and verify identity against pre-registration before release','Two-way audio: operator speaks to visitor, requests purpose of visit and name of host before granting access','Remote door release: operator releases door only after confirming identity — door release logged with operator ID and timestamp','Integration with PACS: intercom event linked to subsequent card access events — complete chain of identity confirmation to building movement','Duress capability: operator or visitor can signal duress — triggers alert to security operations and is captured in full on video'],
+  tags:['Remote door release','Identity challenge','PACS integration','Duress signal']},
+psoc:{z:'Layer 5 — Monitoring',t:'Physical Security Operations Centre',s:'24/7 command and control — CCTV, alarms, dispatch',
+  d:'The Physical SOC is the nerve centre of the physical security operation. Trained operators monitor all detection systems simultaneously, coordinate guard response, liaise with emergency services, and manage the site\'s threat level posture. Integration with the cyber SOC creates a truly unified security operation.',
+  p:['24/7 coverage: minimum two operators on duty at all times — one dedicated CCTV monitor, one for alarms and communications','Cyber SOC integration: shared incident management platform — physical and cyber events appear on the same dashboard','Threat level management: operator can escalate building to heightened security posture at any time — restricts access to essential personnel','Emergency services liaison: direct lines to police, fire, and ambulance; duty officer contact list for senior management escalation','Post-incident review: all incidents reviewed within 24 hours — lessons learned fed into policy updates and control improvements'],
+  tags:['24/7 monitoring','Cyber SOC integration','Threat level management','Emergency services liaison']},
+};
+
+// ═══════════════════════════════════════════════════
+//  FLOWS
+// ═══════════════════════════════════════════════════
+const FLOWS={
+  visitor:   ['c-fence','c-lighting','c-cctv-ext','c-gatehouse','c-vlp','c-reception','c-visitor-mgmt','c-mantrap','c-card','c-guard-desk','c-cctv-vms'],
+  employee:  ['c-barrier','c-vlp','c-carpark','c-reception','c-mantrap','c-card','c-biometric','c-pacs','c-serverroom','c-env-mon','c-psoc'],
+  intruder:  ['c-fence','c-cctv-ext','c-alarm','c-lighting','c-patrol','c-barrier','c-guard-desk','c-psoc','c-cctv-vms'],
+  emergency: ['c-psoc','c-alarm','c-env-mon','c-mantrap','c-visitor-mgmt','c-guard-desk','c-intercom','c-cctv-vms'],
+};
+const FNAMES={visitor:'Tracing authorised visitor entry',employee:'Tracing employee access to server room',intruder:'Simulating intruder detection response',emergency:'Emergency evacuation flow'};
+let current=null,traceTimer=null,tracing=false,speed=1200;
+function setSpeed(ms){speed=ms;}
+
+function clearLit(){document.querySelectorAll('.comp,.vb').forEach(el=>el.classList.remove('lit','lit-gr','lit-re','lit-bl'));}
+
+function showDetail(id,animate){
+  const d=D[id];if(!d)return;
+  const panel=document.getElementById('detail');
+  const tags=d.tags?`<div class="dp-tags">${d.tags.map(t=>`<span class="dp-tag">${t}</span>`).join('')}</div>`:'';
+  const html=`<div class="dp-zone">${d.z}</div><div class="dp-title">${d.t}</div><div class="dp-sub">${d.s}</div><div class="dp-desc">${d.d}</div><ul class="dp-points">${d.p.map(p=>`<li>${p}</li>`).join('')}</ul>${tags}`;
+  if(animate){panel.classList.add('fading');setTimeout(()=>{panel.innerHTML=html;panel.classList.remove('fading');},180);}
+  else panel.innerHTML=html;
+}
+
+function show(id){
+  if(current&&current!==id){const prev=document.getElementById('c-'+current);if(prev)prev.classList.remove('lit','lit-gr','lit-re','lit-bl');}
+  current=id;
+  const el=document.getElementById('c-'+id);
+  if(el){el.classList.remove('lit-gr','lit-re','lit-bl');el.classList.add('lit');}
+  showDetail(id,true);
+  if(!tracing)document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function trace(type){
+  if(tracing){resetArch();return;}
+  resetArch(false);tracing=true;
+  const steps=FLOWS[type];if(!steps)return;
+  const cls=type==='intruder'?'lit-re':type==='emergency'?'lit-bl':'lit-gr';
+  const bar=document.getElementById('traceBar');
+  const stepEl=document.getElementById('tbStep');
+  const nameEl=document.getElementById('tbName');
+  bar.classList.add('show');nameEl.textContent=FNAMES[type]||'';
+  let i=0;
+  function step(){
+    if(i>0){const prev=document.getElementById(steps[i-1]);if(prev)prev.classList.remove('lit','lit-gr','lit-re','lit-bl');}
+    if(i>=steps.length){tracing=false;stepEl.textContent='Complete ✓';return;}
+    const el=document.getElementById(steps[i]);
+    const cid=steps[i].replace('c-','').replace(/-/g,'_');
+    // handle underscored IDs
+    const dataId=steps[i].replace('c-','').replace(/-/g,'_');
+    if(el){el.classList.add(cls);}
+    // show detail for matching id variants
+    const candidates=[dataId,steps[i].replace('c-',''),steps[i].replace('c-','').replace('_','-')];
+    let found=null;
+    for(const c of candidates){if(D[c]){found=c;break;}}
+    if(found)showDetail(found,true);
+    stepEl.textContent=`Step ${i+1} / ${steps.length}`;
+    if(found&&D[found])nameEl.textContent=D[found].t;
+    i++;traceTimer=setTimeout(step,speed);
+  }
+  step();
+}
+
+function resetArch(clearPanel=true){
+  if(traceTimer)clearTimeout(traceTimer);
+  tracing=false;clearLit();current=null;
+  const bar=document.getElementById('traceBar');bar.classList.remove('show');
+  if(clearPanel)document.getElementById('detail').innerHTML='<div class="dp-hint">Click any component above to explore it in depth</div>';
+}
+
+// ═══════════════════════════════════════════════════
+//  PRINCIPLES
+// ═══════════════════════════════════════════════════
+const PRINS=[
+  {icon:'🔵',title:'Defence in depth',cls:'ct-prev',colClass:'pc-bl',
+   desc:'No single physical control is sufficient. Layered, overlapping controls ensure that defeating one layer does not give access to the asset — every additional layer buys response time.',
+   ex:['Multiple independent barriers between public and asset','Controls from different categories at each layer','Detection triggers response before attacker reaches next layer','Compensating controls if one layer is degraded']},
+  {icon:'🎯',title:'Deter · Detect · Delay · Respond',cls:'ct-det',colClass:'pc-am',
+   desc:'The 4D framework defines the function of every physical control. Controls should be designed to maximise dwell time between detection and breach, allowing response forces to arrive.',
+   ex:['Deter: visible cameras, lighting, and signage reduce attempts','Detect: sensors, CCTV, and guards identify intrusions','Delay: fencing, mantraps, and barriers slow progress','Respond: guards, police, and lockdown limit damage']},
+  {icon:'🔗',title:'Physical-cyber integration',cls:'ct-deter',colClass:'pc-pu',
+   desc:'Physical and cyber security must be treated as one domain. A physical breach can bypass all cyber controls; a cyber breach can disable all physical controls. Unified monitoring is essential.',
+   ex:['PACS events forwarded to cyber SIEM in real time','Physical SOC and cyber SOC share incident platform','Impossible physical travel correlated with remote logins','Physical access alerts trigger enhanced cyber monitoring']},
+  {icon:'📋',title:'Least access, documented justification',cls:'ct-corr',colClass:'pc-gr',
+   desc:'Every person\'s physical access rights must be justified by their job role. No standing access to sensitive zones — access is granted on request with documented approval and reviewed regularly.',
+   ex:['Access profiles mapped to job roles in HR system','Quarterly access review: remove unneeded permissions','Visitor access time-bounded and auto-expired','Two-person rule for highest-sensitivity zones']},
+];
+
+function renderPrins(){
+  document.getElementById('principlesGrid').innerHTML=PRINS.map(p=>
+    `<div class="ct-card ${p.cls}">
+      <span class="ct-icon">${p.icon}</span>
+      <div class="ct-title" style="color:var(--${p.cls==='ct-prev'?'blue2':p.cls==='ct-det'?'amber2':p.cls==='ct-deter'?'purple2':'green2'});">${p.title}</div>
+      <p class="ct-desc">${p.desc}</p>
+      <ul class="ct-examples">${p.ex.map(e=>`<li>${e}</li>`).join('')}</ul>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  ACCESS CONTROL TECH
+// ═══════════════════════════════════════════════════
+const AC_TECH=[
+  {icon:'💳',title:'Contactless smart card',tier:'Low–medium risk',tierCol:'var(--blue)',desc:'Encrypted RFID credential. Cannot be copied by commodity readers. Role-based zone permissions. Full audit log.',
+   detail:{t:'Contactless Smart Card (PACS)',d:'The most widely deployed physical access credential. Modern cards (MIFARE DESFire EV3, HID iClass SE) use mutual authentication and encrypted data to prevent cloning. The PACS administrator assigns zone permissions to each card based on the holder\'s role.',
+   p:['MIFARE DESFire EV3: AES-128 encrypted, mutual authentication — commodity readers cannot clone the credential','Zone permissions: card programmed to open only the specific doors the holder needs for their role — nothing more','Anti-passback: prevents the same card being used twice in a row without exiting — detects tailgating attempts','Revocation: lost or stolen cards revoked in PACS within minutes — immediately rejected at all readers','Integration: card events linked to CCTV, VMS, and SIEM for full movement audit trail']}},
+  {icon:'👆',title:'Fingerprint biometric',tier:'Medium–high risk',tierCol:'var(--amber)',desc:'One-to-one or one-to-many matching. FAR < 0.1%. Used as second factor in dual-factor systems.',
+   detail:{t:'Fingerprint Biometric Reader',d:'Fingerprint recognition verifies identity by comparing the presented fingerprint against a stored template. Used as a second factor alongside a card, it ensures that a stolen card alone cannot grant access to sensitive zones.',
+   p:['FAR (False Acceptance Rate): < 0.1% with quality sensors and live finger detection — 1 in 1000 imposters accepted','FRR (False Rejection Rate): < 1% — legitimate users rarely rejected; higher in cold or dry conditions','Liveness detection: essential — prevents access using a silicone finger cast, a photograph, or a lifted latent print','Stored templates: fingerprint templates stored as mathematical vectors, not images — cannot be reverse-engineered to a fingerprint','GDPR: biometric data is special category data — legal basis must be documented; DPIA mandatory before deployment']}},
+  {icon:'👁️',title:'Iris recognition',tier:'High risk',tierCol:'var(--red)',desc:'Highest biometric accuracy. FAR < 0.0001%. Used in Tier IV data centres and government secure rooms.',
+   detail:{t:'Iris Recognition System',d:'Iris recognition is the most accurate biometric available for access control. The complex pattern of the iris remains stable throughout life and is virtually impossible to spoof without a live subject. Used in the highest-security environments.',
+   p:['FAR: < 0.0001% — one in one million false acceptances; virtually eliminates impostor access','Contactless capture: camera at 20–35cm range — hygienic, no surface contact, fast throughput','Spoofing resistance: 3D liveness detection required — flat photographs and artificial eyes rejected','Speed: 1:1 verification in under 1 second; 1:N identification against a database of 1000 in under 3 seconds','Regulatory: same GDPR special category requirements as fingerprint — DPIA and clear legal basis essential']}},
+  {icon:'🤳',title:'Facial recognition',tier:'Medium risk (regulated)',tierCol:'var(--purple)',desc:'Camera-based. High throughput for entry points. Heavily regulated in UK/EU. Requires active consent.',
+   detail:{t:'Facial Recognition Access Control',d:'Facial recognition provides contactless, hands-free access verification at high-throughput entry points. However, it is the most legally complex biometric technology — ICO and EU AI Act guidance imposes significant restrictions on its use in access control.',
+   p:['Use case: staff entry to corporate headquarters, enrolled employees only — not used for general monitoring','Legal basis under GDPR: explicit informed consent for enrolled individuals is the most defensible legal basis in the UK/EU','ICO guidance (UK): commercial facial recognition for access control requires strong justification — subject access rights must be honoured','Accuracy considerations: accuracy may vary with lighting, angle, and ageing — regular re-enrolment recommended (annually)','EU AI Act: real-time biometric identification in public spaces is prohibited with very narrow exceptions — access control is not exempt from all obligations']}},
+  {icon:'🔑',title:'Multi-factor (card + bio)',tier:'High risk / data centre',tierCol:'var(--green)',desc:'Card AND biometric required. Stolen card alone cannot grant access. Mandatory for server rooms.',
+   detail:{t:'Dual-Factor Physical Access',d:'Combining a card (something you have) with a biometric (something you are) provides the same two-factor authentication concept applied to cyber access — directly aligned with Zero Trust principles. This is the minimum requirement for server rooms and Tier III+ data centre cages.',
+   p:['Outer door: card swipe allows entry to mantrap; inner door: biometric verification required for release','Failure handling: if biometric reader fails, fallback to card + PIN (not card only) — maintains two-factor integrity','Anti-tailgate: even after dual-factor success, door contact time and weight sensors detect a second person following through','PACS rules: dual-factor zones logged separately — exceptions to the dual-factor policy require signed management approval','Cyber alignment: same principle as FIDO2 passwordless for cyber access — physical identity cannot be transferred or shared']}},
+  {icon:'📱',title:'Mobile credential',tier:'Low–medium risk',tierCol:'var(--cyan)',desc:'Smartphone replaces physical card. BLE/NFC. Convenient for BYOD workplaces. Card-cloning resistant.',
+   detail:{t:'Mobile Credential / Digital Access Card',d:'Mobile credentials use the smartphone\'s Bluetooth Low Energy (BLE) or NFC capability to communicate with readers, replacing or supplementing physical cards. They leverage the phone\'s device security (biometric unlock) to provide inherent two-factor access.',
+   p:['Credential stored in smartphone secure element (iOS Secure Enclave or Android StrongBox) — cannot be copied','BLE long-range: works at up to 5m — hands-free access when approaching a door with a phone in pocket','NFC tap: precise, intentional tap-to-open — used for higher-security doors where hands-free is undesirable','Revocation: credentials revoked remotely via MDM or PACS portal — faster and more reliable than chasing up physical cards','Integration with MDM: if the mobile device becomes non-compliant (lost, wiped), access credential can be simultaneously revoked']}},
+];
+
+function renderAC(){
+  document.getElementById('acGrid').innerHTML=AC_TECH.map((a,i)=>
+    `<div class="ac-card" onclick="selectAC(${i},this)">
+      <div class="ac-icon">${a.icon}</div>
+      <div class="ac-title">${a.title}</div>
+      <div class="ac-tier" style="background:rgba(0,0,0,.2);border:1px solid ${a.tierCol}22;color:${a.tierCol};font-family:var(--mono);font-size:9px;">${a.tier}</div>
+      <div class="ac-desc">${a.desc}</div>
+    </div>`).join('');
+}
+function selectAC(i,el){
+  document.querySelectorAll('.ac-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  const a=AC_TECH[i].detail;
+  const panel=document.getElementById('acDetail');
+  panel.innerHTML=`<div class="ac-detail-title">${a.t}</div><div class="ac-detail-desc">${a.d}</div><ul class="ac-detail-ul">${a.p.map(p=>`<li>${p}</li>`).join('')}</ul>`;
+  panel.classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════
+//  DATA CENTRE PIPELINE
+// ═══════════════════════════════════════════════════
+const DC_PIPE=[
+  {n:1,c:'c-am',t:'Site perimeter',s:'Anti-ram barriers + ANPR at vehicle entrance',d:'The data centre site perimeter is protected by crash-rated barriers and ANPR. Visitors must pre-register with a vehicle registration number and are denied entry if the plate is not in the approved list.',o:'Vehicle: approved / denied'},
+  {n:2,c:'c-am',t:'Security gatehouse challenge',s:'ID check, purpose, and host confirmation',d:'All visitors challenged at a staffed gatehouse. Government photo ID inspected and logged. Host confirms expected visitor before the barrier rises. Unannounced visitors are refused entry and asked to contact their host to arrange a formal visit.',o:'Visitor: authorised / turned away'},
+  {n:3,c:'c-bl',t:'Reception / visitor management',s:'Digital sign-in, badge, NDA, escort assignment',d:'Visitor signs in digitally, NDA accepted, temporary badge printed showing name, host, date, and valid zones. Escort assigned — visitor never unaccompanied. Badge is timed and automatically expires.',o:'Badge issued / escort assigned'},
+  {n:4,c:'c-bl',t:'Mantrap entry to data hall',s:'Card at outer door, biometric at inner door',d:'A full mantrap with card + biometric required for entry to the data hall. The chamber physically prevents tailgating. Anti-passback is enforced. If the biometric fails three times, the chamber locks and security is alerted.',o:'Identity: verified / denied'},
+  {n:5,c:'c-gr',t:'Cage / suite access',s:'Second independent access control at cage level',d:'Individual data halls and customer cages have their own access control, independent of the main building system. Operators must be authorised on both the building PACS and the cage reader — even escorted visitors require specific cage access to be provisioned.',o:'Cage: open / locked'},
+  {n:6,c:'c-gr',t:'CCTV escort monitoring',s:'Operator tracks visitor movement on all cameras',d:'The security operations centre operator tracks the visitor\'s movement throughout the visit on CCTV. Any deviation from the escorted path, any unescorted movement, or any access to rack areas beyond the authorised cage triggers an alert.',o:'Movement: monitored / alert'},
+  {n:7,c:'c-pu',t:'Exit and badge return',s:'Badge collected, PACS visitor session closed, CCTV confirms departure',d:'On exit, the visitor\'s temporary badge is collected at reception, the visit record is closed in the visitor management system, and CCTV confirms the visitor has left the building. ANPR confirms the vehicle has exited the site.',o:'Visit: closed / audited'},
+  {n:8,c:'c-pu',t:'Audit and retention',s:'Access logs retained 90 days, CCTV 90 days, visitor log 12 months',d:'All access events, CCTV footage, and visitor records are retained for the required periods. Access events are fed to the SIEM in real time for correlation. Anomalous patterns — after-hours access, repeated denied attempts, unusual zones — generate SOC alerts.',o:'Records: archived / SIEM integrated'},
+];
+
+function renderDCPipe(){
+  const half=Math.ceil(DC_PIPE.length/2);
+  const mk=(s,last)=>`<div class="ps ${s.c}">
+    <div class="ps-left"><div class="ps-num">${s.n}</div>${!last?'<div class="ps-line"></div>':''}</div>
+    <div class="ps-box"><div class="ps-title">${s.t}</div><div class="ps-sub">${s.s}</div><div class="ps-desc">${s.d}</div><span class="ps-out">→ ${s.o}</span></div>
+  </div>`;
+  document.getElementById('dcPipeL').innerHTML=DC_PIPE.slice(0,half).map((s,i)=>mk(s,i===half-1)).join('');
+  document.getElementById('dcPipeR').innerHTML=DC_PIPE.slice(half).map((s,i,a)=>mk(s,i===a.length-1)).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  ENVIRONMENTAL
+// ═══════════════════════════════════════════════════
+const ENV=[
+  {icon:'🌡️',title:'Temperature management',desc:'Thermal runaway is a leading cause of hardware failure and fire in server rooms. Precision cooling maintains safe operating range.',
+   specs:[['Target temp','18–22°C (server intake)'],['Alert threshold','27°C → SOC notification'],['Shutdown threshold','35°C → graceful power-down'],['Standard','EN 14644 / ASHRAE A1-A4'],['Redundancy','N+1 minimum CRAC units']]},
+  {icon:'💧',title:'Humidity control',desc:'Low humidity causes static discharge; high humidity promotes condensation and corrosion. Both can damage sensitive electronics.',
+   specs:[['Target range','40–55% relative humidity'],['Low humidity alert','< 30% → static risk'],['High humidity alert','> 65% → condensation risk'],['Monitoring','Continuous per-room sensors'],['Standard','ASHRAE TC 9.9 guidelines']]},
+  {icon:'🔥',title:'Fire detection & suppression',desc:'Early fire detection before damage occurs. Gaseous suppression protects hardware — water-based systems destroy equipment.',
+   specs:[['Detection','VESDA very early smoke detection'],['Threshold','0.02% obscuration/m — pre-alert'],['Suppression','IG-541 / FM-200 clean agent gas'],['Pre-discharge warning','60-second abort window'],['Standard','BS 5839 / NFPA 75']]},
+  {icon:'⚡',title:'Power infrastructure',desc:'Power failure or surge can cause immediate hardware loss. Redundant power paths with UPS and generator ensure continuous availability.',
+   specs:[['UPS runtime','Minimum 15 min at full load'],['Generator start','< 30 seconds from utility loss'],['Dual power paths','Separate feeds to each rack'],['Power quality','Monitoring per ISO 8528'],['Standards','Uptime Tier III: concurrent maintainability']]},
+  {icon:'🌊',title:'Flood & water detection',desc:'Leaking cooling systems, burst pipes, or external flooding can cause catastrophic hardware loss. Sensors provide early warning before water reaches equipment.',
+   specs:[['Sensor placement','Under raised floor + around CRACs'],['Detection type','Conductive water detection strips'],['Alert action','SOC notification + cooling valve shut-off'],['Response time','Alert within 30 seconds of contact'],['Under floor','Full coverage grid — no gaps']]},
+  {icon:'🔒',title:'Physical cable security',desc:'Network and power cabling is a physical attack vector. Cable patching, tapping, or cutting can disrupt services or create covert access to network segments.',
+   specs:[['Structured cabling','Locked cable trays and conduit'],['Patch panel security','Locked cabinets with CCTV overlay'],['Cable identification','Unique labels both ends + CMDB record'],['Annual audit','Physical cable audit vs CMDB — rogue cables found'],['Standards','EN 50173 / TIA-568']]},
+];
+
+function renderEnv(){
+  document.getElementById('envGrid').innerHTML=ENV.map(e=>
+    `<div class="env-card">
+      <span class="env-icon">${e.icon}</span>
+      <div class="env-title">${e.title}</div>
+      <p class="env-desc">${e.desc}</p>
+      <ul class="env-specs">${e.specs.map(([k,v])=>`<li><span class="spec-k">${k}</span><span class="spec-v">${v}</span></li>`).join('')}</ul>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  IR SCENARIOS
+// ═══════════════════════════════════════════════════
+const IRA=[
+  {t:'CCTV analytics alert — perimeter breach',a:'Video analytics detects a person climbing the fence at 02:14. The PIR motion lights activate. CCTV control room operator receives alert. PTZ camera automatically slews to the location. Security operations desk acknowledges the alert immediately.',w:'Video analytics provides the first detection trigger — the PIR light activation is the second, independent detection confirming the alert is not a camera fault.'},
+  {t:'Dispatch patrol officer to the location',a:'Control room operator contacts patrol officer via radio: "Person over fence, north-east corner, sector B, confirm movement towards building." Officer proceeds to sector B. ETA given to operator so camera can track the subject until officer arrives.',w:'Guard arrival time determines how much of the site the intruder can access — rapid dispatch minimises exposure.'},
+  {t:'Elevate site threat level',a:'Duty security manager contacted and site placed on Alert Level 2. All PACS doors set to "secured" — unscheduled access denied until standdown. CCTV operator increases sweep frequency on all sectors adjacent to the breach point.',w:'Elevating threat level limits the zones the intruder can access if they avoid the patrol officer and reach the building.'},
+  {t:'Assess intent and capability',a:'PTZ operator tracks the subject. Control room assesses: is the subject moving purposefully toward a specific building or asset? Carrying equipment (tools, bag)? Moving to avoid lights and cameras? Assessment determines whether police call is immediately warranted.',w:'Assessment avoids disproportionate response to a confused member of the public, while ensuring armed or determined intruders receive police assistance.'},
+  {t:'Contact emergency services if threat confirmed',a:'If subject cannot be challenged safely, or if equipment suggests criminal intent, operator calls 999 (UK) or 911. Control room provides live CCTV description of subject, direction of travel, and entry point. Police response ETA logged.',w:'Police are most effective when provided with live CCTV support — control room operator should remain on the line and direct officers from the camera feed.'},
+  {t:'Patrol officer challenge or observe and report',a:'Patrol officer locates subject. If safe, verbal challenge: "This is private property, you are trespassing. Please identify yourself and state your purpose." If subject is aggressive or armed, officer withdraws and maintains visual from safe distance while awaiting police.',w:'Officer safety is paramount — physical confrontation with an unknown subject is not required and should not be policy. Observe and report is a valid and safe response.'},
+  {t:'PACS access log review',a:'After incident is contained, PACS administrator reviews access logs for any door events during the intrusion window. Checks whether the intruder reached any access-controlled door, whether any anomalous access was granted, and whether any forced-door alarms were triggered.',w:'Confirming no access-controlled zones were breached is essential for scoping the incident — if a forced door was detected, the investigation escalates significantly.'},
+  {t:'Evidence preservation and report',a:'CCTV footage from all cameras covering the incident extracted and exported in tamper-evident format. Export access logged in VMS audit trail. Incident report filed with timestamp, description, CCTV reference numbers, and officer notes. Police reference number recorded.',w:'Evidential footage must be exported promptly — overwrite cycles can destroy evidence before it is identified. Tamper-evident export ensures footage is admissible.'},
+];
+const IRB=[
+  {t:'PACS anti-tailgate alert triggers',a:'PACS anti-tailgate logic fires on the server room door: door open time was 14 seconds (threshold: 8 seconds). Door contact logged this as a potential multi-person entry. CCTV analytics also flagged two heat signatures passing through the door in a single access event.',w:'Two independent detection signals (PACS open-time anomaly AND CCTV two-person detection) make this a confirmed event rather than a false alarm.'},
+  {t:'Review CCTV footage at the door',a:'Control room operator reviews the CCTV clip from the server room door camera. Clear footage shows the cardholder (identified by face and badge) entering, then holding the door open for a second person who did not badge in. Second person\'s identity is unknown.',w:'Video evidence establishes the tailgate definitively — the image of the second person is the key forensic asset for identification.'},
+  {t:'Identify the cardholder from PACS log',a:'PACS access log confirms which card was used and maps to the cardholder identity. HR confirmed this person does not have server room access in their access profile — the server room access was granted in error or inherited from a previous role. IT support confirm the second person is not authorised.',w:'Access profile mismatch is a finding in its own right — the cardholder should not have server room access even without the tailgate incident.'},
+  {t:'Immediate response — enter and challenge',a:'Security officer dispatched to server room with supervisor. The two individuals are located and the unregistered person is asked to identify themselves and explain their presence. Both are escorted out of the server room. Server room door is confirmed locked behind them.',w:'Both individuals must be present during the challenge — allowing either to remain unescorted in the server room while the other is questioned is not acceptable.'},
+  {t:'Review server room activity during access',a:'CCTV inside the server room reviewed for the full duration from entry to exit. All racks accessed by either individual noted. All cable insertions or removals checked. SIEM cross-references physical access window with network traffic anomalies from within that rack segment.',w:'The most critical question is whether any device was installed or removed. CCTV combined with SIEM network traffic is the definitive check.'},
+  {t:'Cardholder access profile remediation',a:'Cardholder\'s access profile is corrected immediately — server room access removed. All other zones in the profile reviewed against current job role. Access profile peer-reviewed by line manager and security administrator. Correction logged with reason.',w:'The access profile error is a systemic finding — a process review should determine how the incorrect permission was granted and prevent recurrence.'},
+  {t:'Formal incident investigation and report',a:'Formal incident investigation initiated. Both individuals interviewed separately. Findings documented: whether the tailgate was deliberate (possible misconduct) or accidental (security awareness issue). HR notified. If data or equipment was accessed without authorisation, data breach assessment required under GDPR.',w:'Tailgating can range from innocent unawareness to deliberate insider access bypass. The investigation must establish intent before deciding the appropriate response.'},
+  {t:'Systemic control improvement',a:'Physical security review recommends: server room door upgraded to include person-counter or weight sensor; anti-tailgate training added to security induction; PACS access profile review frequency increased from annual to quarterly for sensitive zone holders.',w:'Post-incident improvements are the most important output — the goal is to make the same incident type impossible or much harder to repeat.'},
+];
+const IRC=[
+  {t:'Receive and log the initial report',a:'The employee reporting the suspicious package is interviewed immediately. Key information gathered: exact location, time noticed, physical description (size, shape, weight, markings or lack thereof), whether it was placed or delivered, proximity to other people or critical systems.',w:'Accurate initial information determines the response category — a small package near a server room is treated differently from a large unattended item in the car park.'},
+  {t:'Do not touch, move, or examine the package',a:'Staff immediately briefed: do not handle the package, do not use radio transmitters or mobile phones within 15m, do not take photographs (camera flash can act as a detonator in rare cases). Area cordoned using tape or barriers — minimum 15m radius.',w:'The most common errors in suspicious package incidents involve well-meaning staff picking up or moving items. Minimum interference is the safest approach until an assessment is made.'},
+  {t:'Evacuate the immediate area',a:'All personnel within the 15m cordon evacuated to a safe distance and accounted for. Floor warden system activated. No one re-enters the cordon. Roll call taken using visitor management system to confirm all persons are accounted for.',w:'Speed of evacuation matters — the cordon is a minimum distance. Actual evacuation should be further if the package is adjacent to a high-value target or structural element.'},
+  {t:'Contact the police',a:'999 (UK) called immediately. Information provided: nature of the concern, location (building address, floor, specific location), description of the package, number of people evacuated, and security manager on-site name and mobile number. Do not speculate about the contents.',w:'Police will take command of the incident on arrival. The security manager\'s role transitions to supporting the police rather than independently managing the response.'},
+  {t:'Initiate building evacuation if directed',a:'If police advise a full building evacuation, the fire alarm is activated to achieve immediate evacuation of all personnel. Building exits confirmed as clear of the package route. Muster points activated and roll call initiated using visitor management records.',w:'Full evacuation should be the default for a credible threat — the cost of a false alarm is minor; the cost of failing to evacuate is potentially catastrophic.'},
+  {t:'CCTV review to identify the depositor',a:'Control room operator immediately reviews all CCTV covering the reception area from the last 4 hours. Identifies the person who brought or placed the package. Extracts evidential footage. ANPR logs checked for all vehicles arriving in the time window.',w:'Identification of the depositor is the priority intelligence task — it enables the police to assess whether the threat is real and direct their investigation.'},
+  {t:'Police specialist unit assessment',a:'Police Counter Terrorism Search Team (CTSA) or Explosive Ordnance Disposal (EOD) attend if required. Security manager provides full situation briefing, CCTV footage, and building plans. Police command the scene and make the render-safe or false alarm determination.',w:'Police specialist units have the training and equipment to safely assess the package. Security staff should not attempt any assessment — their role is support and information provision.'},
+  {t:'All-clear, scene preservation, and debrief',a:'On all-clear, police confirm safe return to building. Scene preserved until police authorise clean-up. Full debrief conducted within 24 hours: what triggered the report, were controls adequate, how quickly was the area evacuated, what CCTV evidence was available. Lessons learned documented.',w:'Post-incident review of the suspicious package response often reveals gaps in training (staff unsure of procedure), coverage (CCTV blind spots in reception), or communication (alarm activation delay).'},
+];
+
+function renderIR(){
+  const mk=(s,i)=>`<div class="ir-step" onclick="toggleIR(this)">
+    <div class="ir-n">${i+1}</div>
+    <div class="ir-body">
+      <div class="ir-title">${s.t}</div>
+      <div class="ir-action">${s.a}</div>
+      <div class="ir-why">Why: ${s.w}</div>
+    </div></div>`;
+  document.getElementById('irA').innerHTML=IRA.map(mk).join('');
+  document.getElementById('irB').innerHTML=IRB.map(mk).join('');
+  document.getElementById('irC').innerHTML=IRC.map(mk).join('');
+}
+function toggleIR(el){el.classList.toggle('active');el.querySelector('.ir-n').classList.toggle('done');}
+let irT={a:null,b:null,c:null};
+function runIR(w){
+  resetIR(w);
+  const steps=document.querySelectorAll(`#ir${w.toUpperCase()} .ir-step`);
+  let i=0;
+  function step(){
+    if(i>0){steps[i-1].classList.remove('active');steps[i-1].classList.add('done');steps[i-1].querySelector('.ir-n').classList.add('done');}
+    if(i>=steps.length)return;
+    steps[i].classList.add('active');steps[i].scrollIntoView({behavior:'smooth',block:'nearest'});
+    i++;irT[w]=setTimeout(step,1300);
+  }
+  step();
+}
+function resetIR(w){
+  if(irT[w])clearTimeout(irT[w]);
+  document.querySelectorAll(`#ir${w.toUpperCase()} .ir-step`).forEach(el=>{el.classList.remove('active','done');el.querySelector('.ir-n').classList.remove('done');});
+}
+function switchSc(w,btn){
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.sc-body').forEach(b=>b.classList.remove('show'));
+  document.getElementById('sc-'+w).classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════
+//  QUICK REFERENCE
+// ═══════════════════════════════════════════════════
+const QREF=[
+  {title:'The 4D framework',color:'var(--amber)',items:[['Deter','Visible controls reduce attack likelihood'],['Detect','Sensors and CCTV identify breaches'],['Delay','Barriers slow attacker progress'],['Respond','Guards + police limit damage after detection']]},
+  {title:'Access control factors',color:'var(--blue2)',items:[['Factor 1 — Have','Smart card / fob / badge'],['Factor 2 — Are','Biometric (fingerprint, iris, face)'],['Factor 3 — Know','PIN or passphrase'],['Best practice','Two factors for sensitive zones'],['Avoid','Single factor for high-risk areas']]},
+  {title:'CCTV retention standards',color:'var(--purple2)',items:[['Standard commercial','31 days minimum (ICO guidance)'],['High-security / DC','90 days or longer'],['ANPR data','Per documented GDPR retention policy'],['Incident footage','Preserved until investigation closed'],['Export format','Tamper-evident + chain of custody']]},
+  {title:'Data centre tier physical',color:'var(--green2)',items:[['Tier I','Basic access control, single path'],['Tier II','Card access, CCTV, UPS'],['Tier III','Mantrap, multi-factor, 24/7 guard'],['Tier IV','Biometric, armed guard, ANPR, caged'],['ISO 27001 A.7','Physical and environmental controls']]},
+  {title:'Response time targets',color:'var(--red2)',items:[['ARC response','< 20 min keyholder, < 30 min police'],['Guard to perimeter alert','< 5 minutes on-site patrol'],['PACS alert to SOC','Real-time (< 10 seconds)'],['Fire suppression','VESDA pre-alarm then 60s delay'],['Evacuation roll call','< 15 min for full building']]},
+  {title:'Key standards quick-ref',color:'var(--teal)',items:[['ISO 27001 A.7','Physical & environmental security'],['NIST SP 800-53 PE','Physical & environmental protection'],['PCI DSS Req 9','Physical access to cardholder data'],['EN 50131','Intruder alarm grading system'],['PAS 68 / IWA 14','Vehicle impact protection rating']]},
+];
+
+function renderQRef(){
+  document.getElementById('qrefGrid').innerHTML=QREF.map(q=>`
+    <div class="qref-card">
+      <div class="qref-hd"><div class="qref-dot" style="background:${q.color};"></div><div class="qref-title" style="color:${q.color};">${q.title}</div></div>
+      <div class="qref-body">${q.items.map(([k,v])=>`<div class="qref-row"><span class="qref-k">${k}</span><span class="qref-v">${v}</span></div>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  SIDEBAR TOC ACTIVE TRACKING + PROGRESS BAR
+// ═══════════════════════════════════════════════════
+const sections=['principles','architecture','control-types','access-control','surveillance','data-centre','environment','scenarios','standards','reference'];
+const tocLinks=sections.map((_,i)=>document.getElementById('toc-'+i));
+
+function onScroll(){
+  // progress bar
+  const scrollable=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('pbar').style.width=(window.scrollY/scrollable*100)+'%';
+  // active section
+  let active=0;
+  sections.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el&&el.getBoundingClientRect().top<=100)active=i;
+  });
+  tocLinks.forEach((l,i)=>{if(l)l.classList.toggle('active',i===active);});
+}
+window.addEventListener('scroll',onScroll,{passive:true});
+
+// ═══════════════════════════════════════════════════
+//  SCROLL REVEAL
+// ═══════════════════════════════════════════════════
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});},{threshold:.06});
+document.querySelectorAll('.rv').forEach(el=>ro.observe(el));
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+renderPrins();
+renderAC();
+renderDCPipe();
+renderEnv();
+renderIR();
+renderQRef();
+setTimeout(()=>document.querySelectorAll('.rv').forEach(el=>ro.observe(el)),200);
+</script>
+</body>
+</html>
