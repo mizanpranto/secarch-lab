@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecArch Lab · Security Architecture Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;--bg2:#0B0E17;--bg3:#0F1320;
+  --card:#0D1119;--card2:#111827;
+  --border:#1A2235;--border2:#1F2D45;
+  --blue:#3B82F6;--blue-bright:#60A5FA;
+  --blue-dim:#1E3A5F;--blue-faint:rgba(59,130,246,0.06);
+  --cyan:#22D3EE;--green:#10B981;--green-dim:#064E3B;
+  --amber:#F59E0B;--red:#EF4444;--purple:#A78BFA;--teal:#2DD4BF;
+  --text:#E2E8F0;--text2:#8B9DB5;--text3:#3D5066;--text4:#2A3A50;
+  --display:'Syne',sans-serif;--body:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.6;overflow-x:hidden;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(59,130,246,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,0.04) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;top:-200px;right:-200px;width:600px;height:600px;
+  background:radial-gradient(circle,rgba(59,130,246,0.07) 0%,transparent 65%);
+  pointer-events:none;z-index:0;
+}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;align-items:center;padding:0 40px;gap:32px;background:rgba(7,9,15,0.9);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);letter-spacing:.04em;}
+.nav-brand-icon{width:28px;height:28px;border-radius:6px;background:var(--blue-dim);border:1px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--blue);}
+.nav-sep{color:var(--text3);font-size:12px;}
+.nav-links{display:flex;gap:0;margin-left:auto;}
+.nav-link{padding:0 16px;height:56px;display:flex;align-items:center;font-family:var(--mono);font-size:11.5px;color:var(--text2);text-decoration:none;letter-spacing:.06em;border-bottom:2px solid transparent;transition:all .15s;}
+.nav-link:hover{color:var(--text);border-bottom-color:var(--border2);}
+.nav-link.active{color:var(--blue);border-bottom-color:var(--blue);}
+.nav-counter{margin-left:6px;font-size:9px;background:var(--blue-dim);color:var(--blue-bright);padding:1px 5px;border-radius:3px;border:1px solid rgba(59,130,246,.2);}
+
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;text-align:center;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;color:var(--text3);letter-spacing:.18em;text-transform:uppercase;margin-bottom:24px;}
+.hero-eyebrow-line{width:32px;height:1px;background:var(--border2);}
+.hero-headline{font-family:var(--display);font-size:clamp(52px,9vw,104px);font-weight:800;line-height:.92;letter-spacing:-.04em;margin-bottom:16px;}
+.hero-headline .w1{color:var(--text);}
+.hero-headline .w2{-webkit-text-stroke:1px var(--blue);-webkit-text-fill-color:transparent;}
+.hero-headline .w3{color:var(--text);}
+.hero-sub{font-family:var(--mono);font-size:11.5px;color:var(--cyan);letter-spacing:.18em;text-transform:uppercase;margin-bottom:20px;}
+.hero-desc{max-width:500px;font-size:16px;color:var(--text2);line-height:1.8;font-weight:300;margin-bottom:40px;}
+.hero-tags{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:52px;}
+.htag{font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:4px;border:1px solid var(--border2);color:var(--text3);letter-spacing:.06em;transition:all .15s;cursor:default;}
+.htag:hover{border-color:var(--blue);color:var(--blue-bright);}
+.htag.live{border-color:rgba(16,185,129,.3);color:var(--green);background:rgba(16,185,129,.05);}
+.htag.live::before{content:'● ';font-size:7px;vertical-align:middle;animation:blink 1.4s ease infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero-counts{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card);}
+.hero-count{padding:20px 32px;text-align:center;border-right:1px solid var(--border);}
+.hero-count:last-child{border-right:none;}
+.hc-num{font-family:var(--display);font-size:38px;font-weight:800;line-height:1;color:var(--text);}
+.hc-num .hi{color:var(--blue-bright);}
+.hc-label{font-family:var(--mono);font-size:9.5px;color:var(--text3);letter-spacing:.1em;margin-top:4px;text-transform:uppercase;}
+.hero-scroll-hint{position:absolute;bottom:28px;font-family:var(--mono);font-size:9.5px;color:var(--text4);letter-spacing:.12em;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;}
+.scroll-bar{width:1px;height:36px;background:linear-gradient(var(--blue),transparent);animation:sa 1.8s ease-in-out infinite;}
+@keyframes sa{0%{opacity:0;transform:scaleY(0);transform-origin:top;}60%{opacity:1;}100%{opacity:0;transform:scaleY(1);}}
+@keyframes fi{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.hero>*{animation:fi .5s ease both;}
+.hero-eyebrow{animation-delay:.05s;}.hero-headline{animation-delay:.1s;}.hero-sub{animation-delay:.15s;}.hero-desc{animation-delay:.2s;}.hero-tags{animation-delay:.25s;}.hero-counts{animation-delay:.3s;}
+
+/* SECTION */
+.section{position:relative;z-index:1;padding:80px 40px;}
+.s-inner{max-width:1240px;margin:0 auto;}
+.s-head{margin-bottom:44px;}
+.eyebrow{font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:.18em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--blue);}
+.s-title{font-family:var(--display);font-size:clamp(26px,3.5vw,40px);font-weight:700;line-height:1.1;letter-spacing:-.02em;}
+.s-title .hl{color:var(--blue-bright);}
+.s-desc{font-size:14px;color:var(--text2);max-width:580px;margin-top:10px;line-height:1.7;font-weight:300;}
+
+/* TRACK STRIP */
+.track-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:64px;}
+.ts-item{background:var(--card);padding:28px 24px;position:relative;overflow:hidden;transition:background .2s;}
+.ts-item:hover{background:var(--card2);}
+.ts-bg-letter{position:absolute;right:-8px;bottom:-16px;font-family:var(--display);font-size:100px;font-weight:800;line-height:1;opacity:.04;pointer-events:none;}
+.ts-track{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ts-track::before{content:'';display:block;width:12px;height:1px;}
+.ts-name{font-family:var(--display);font-size:17px;font-weight:700;line-height:1.25;margin-bottom:8px;letter-spacing:-.01em;}
+.ts-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;}
+.ts-pill{display:inline-flex;align-items:center;gap:5px;margin-top:14px;font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:3px;border:1px solid;letter-spacing:.04em;}
+.ta .ts-track,.ta .ts-bg-letter{color:var(--blue);}
+.ta .ts-track::before{background:var(--blue);}
+.ta .ts-pill{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.2);color:var(--blue);}
+.tb .ts-track,.tb .ts-bg-letter{color:var(--amber);}
+.tb .ts-track::before{background:var(--amber);}
+.tb .ts-pill{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber);}
+.tc .ts-track,.tc .ts-bg-letter{color:var(--purple);}
+.tc .ts-track::before{background:var(--purple);}
+.tc .ts-pill{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.2);color:var(--purple);}
+
+/* FILTER BAR */
+.filter-bar{display:flex;align-items:center;gap:6px;margin-bottom:28px;flex-wrap:wrap;}
+.fb{font-family:var(--mono);font-size:11px;padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s;letter-spacing:.04em;}
+.fb:hover{border-color:var(--border2);color:var(--text);}
+.fb.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.fb .n{margin-left:5px;font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,.15);}
+.search-box{margin-left:auto;position:relative;}
+.sb-input{font-family:var(--mono);font-size:11.5px;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 12px 7px 34px;color:var(--text);width:210px;outline:none;transition:border-color .15s;}
+.sb-input:focus{border-color:var(--blue);}
+.sb-input::placeholder{color:var(--text3);}
+.sb-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.3;pointer-events:none;}
+
+/* CARD GRID */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+.acard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:border-color .15s,transform .15s,box-shadow .15s;}
+.acard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.acard.is-built{border-color:rgba(16,185,129,.2);}
+.acard.is-built:hover{border-color:var(--green);}
+.acard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;opacity:0;transition:opacity .15s;}
+.acard:hover::before{opacity:1;}
+.acard.ta::before{background:var(--blue);}
+.acard.tb::before{background:var(--amber);}
+.acard.tc::before{background:var(--purple);}
+.card-track{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.card-track::before{content:'';display:block;width:10px;height:1px;}
+.acard.ta .card-track{color:var(--blue);}
+.acard.ta .card-track::before{background:var(--blue);}
+.acard.tb .card-track{color:var(--amber);}
+.acard.tb .card-track::before{background:var(--amber);}
+.acard.tc .card-track{color:var(--purple);}
+.acard.tc .card-track::before{background:var(--purple);}
+.card-title{font-family:var(--display);font-size:14.5px;font-weight:600;line-height:1.3;margin-bottom:5px;letter-spacing:-.01em;}
+.card-sub{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:12px;letter-spacing:.03em;}
+.card-desc{font-size:12.5px;color:var(--text2);line-height:1.6;font-weight:300;flex:1;margin-bottom:14px;}
+.card-comps{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;}
+.card-comp{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;background:var(--bg2);border:1px solid var(--border);color:var(--text3);letter-spacing:.02em;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:auto;}
+.status{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;padding:3px 9px;border-radius:3px;letter-spacing:.04em;}
+.s-live{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);color:var(--green);}
+.s-live::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 1.2s ease infinite;}
+.s-plan{background:var(--bg2);border:1px solid var(--border);color:var(--text3);}
+.s-plan::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--text4);}
+.card-arrow{width:26px;height:26px;border-radius:5px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;transition:all .15s;}
+.acard:hover .card-arrow{border-color:var(--blue);color:var(--blue);background:var(--blue-faint);}
+.empty{grid-column:1/-1;text-align:center;padding:80px;color:var(--text3);font-family:var(--mono);font-size:12px;}
+
+/* CISSP */
+.cissp-section{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.domain-block{margin-bottom:40px;}
+.domain-block:last-child{margin-bottom:0;}
+.domain-label-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.domain-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;padding:5px 14px;border-radius:3px;border:1px solid;white-space:nowrap;}
+.domain-rule{flex:1;height:1px;background:var(--border);}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);backdrop-filter:blur(16px);display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;max-width:660px;width:100%;max-height:88vh;overflow-y:auto;position:relative;}
+.modal-hd{padding:28px 28px 22px;border-bottom:1px solid var(--border);position:relative;}
+.modal-track{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;}
+.modal-title{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-bottom:5px;}
+.modal-sub{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.modal-x{position:absolute;top:20px;right:20px;width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.modal-x:hover{border-color:var(--red);color:var(--red);}
+.modal-bd{padding:22px 28px 28px;}
+.modal-desc{font-size:14px;color:var(--text2);line-height:1.8;font-weight:300;margin-bottom:22px;}
+.modal-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.modal-comps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;}
+.modal-comp{font-family:var(--mono);font-size:11px;padding:4px 11px;border-radius:4px;background:var(--card);border:1px solid var(--border2);color:var(--text2);}
+.modal-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.mbtn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-family:var(--mono);font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;border:1px solid;transition:all .15s;}
+.mbtn-p{background:var(--blue);border-color:var(--blue);color:#fff;}
+.mbtn-p:hover{background:#2563EB;border-color:#2563EB;}
+.mbtn-s{background:transparent;border-color:var(--border2);color:var(--text2);}
+.mbtn-s:hover{border-color:var(--blue);color:var(--blue);}
+.modal-coming{font-family:var(--mono);font-size:11px;color:var(--text3);}
+
+/* FOOTER */
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:36px 40px;background:var(--bg2);}
+.footer-inner{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text2);}
+.footer-brand-icon{width:24px;height:24px;border-radius:5px;background:var(--blue-dim);border:1px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--blue);}
+.footer-meta{font-family:var(--mono);font-size:10.5px;color:var(--text3);}
+.footer-links{display:flex;gap:20px;}
+.footer-links a{font-family:var(--mono);font-size:10.5px;color:var(--text3);text-decoration:none;letter-spacing:.04em;transition:color .15s;}
+.footer-links a:hover{color:var(--blue);}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(20px);transition:opacity .45s ease,transform .45s ease;}
+.rv.in{opacity:1;transform:translateY(0);}
+
+/* RESPONSIVE */
+@media(max-width:860px){
+  .track-strip{grid-template-columns:1fr;}
+  nav{padding:0 20px;}.section{padding:60px 20px;}
+  footer{padding:28px 20px;}.hero{padding:80px 20px;}
+  .hero-counts{flex-direction:column;border-radius:10px;}
+  .hero-count{border-right:none;border-bottom:1px solid var(--border);padding:16px 24px;}
+  .hero-count:last-child{border-bottom:none;}
+  .search-box{margin-left:0;width:100%;}.sb-input{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-brand">
+    <div class="nav-brand-icon">S</div>
+    SecArch<span class="nav-sep">/</span>Lab
+  </a>
+  <div class="nav-links">
+    <a href="#library" class="nav-link active" onclick="setNav(this)">Library <span class="nav-counter">42</span></a>
+    <a href="#cissp" class="nav-link" onclick="setNav(this)">CISSP <span class="nav-counter">16</span></a>
+    <a href="#roadmap" class="nav-link" onclick="setNav(this)">Roadmap</a>
+    <a href="https://github.com/mizanpranto" target="_blank" class="nav-link">GitHub ↗</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <div class="hero-eyebrow-line"></div>
+    Security Architecture Reference
+    <div class="hero-eyebrow-line"></div>
+  </div>
+  <h1 class="hero-headline">
+    <span class="w1">Security</span><br>
+    <span class="w2">Architecture</span><br>
+    <span class="w3">Lab</span>
+  </h1>
+  <div class="hero-sub">Interactive · Explorable · CISSP-aligned</div>
+  <p class="hero-desc">
+    A complete library of interactive security architecture diagrams — from enterprise
+    email gateways and Zero Trust to all 8 CISSP CBK domains. Every diagram is
+    click-to-explore and updated continuously from GitHub.
+  </p>
+  <div class="hero-tags">
+    <span class="htag live">2 live now</span>
+    <span class="htag">Zero Trust</span>
+    <span class="htag">Email Security</span>
+    <span class="htag">SOC / SIEM</span>
+    <span class="htag">NIST RMF</span>
+    <span class="htag">Cloud Security</span>
+    <span class="htag">DevSecOps</span>
+    <span class="htag">CISSP CBK</span>
+    <span class="htag">Cryptography</span>
+  </div>
+  <div class="hero-counts">
+    <div class="hero-count"><div class="hc-num"><span class="hi">42</span></div><div class="hc-label">Total diagrams</div></div>
+    <div class="hero-count"><div class="hc-num">3</div><div class="hc-label">Tracks</div></div>
+    <div class="hero-count"><div class="hc-num">8</div><div class="hc-label">CISSP domains</div></div>
+    <div class="hero-count"><div class="hc-num"><span class="hi">2</span></div><div class="hc-label">Live now</div></div>
+  </div>
+  <div class="hero-scroll-hint" onclick="document.getElementById('library').scrollIntoView({behavior:'smooth'})">
+    <div class="scroll-bar"></div>SCROLL
+  </div>
+</div>
+
+<!-- TRACK OVERVIEW -->
+<section class="section" id="tracks">
+  <div class="s-inner">
+    <div class="s-head rv">
+      <div class="eyebrow">Content tracks</div>
+      <h2 class="s-title">Three tracks, <span class="hl">one reference library</span></h2>
+      <p class="s-desc">Every diagram belongs to one of three tracks based on its purpose — real-world enterprise systems, course fundamentals, or CISSP domain frameworks.</p>
+    </div>
+    <div class="track-strip rv">
+      <div class="ts-item ta">
+        <div class="ts-bg-letter">A</div>
+        <div class="ts-track">Track A</div>
+        <div class="ts-name">Security Architecture Diagrams</div>
+        <div class="ts-desc">End-to-end interactive diagrams for real enterprise security systems — email gateway, Zero Trust, SOC, IAM, cloud security, DevSecOps, and more.</div>
+        <div class="ts-pill">18 diagrams</div>
+      </div>
+      <div class="ts-item tb">
+        <div class="ts-bg-letter">B</div>
+        <div class="ts-track">Track B</div>
+        <div class="ts-name">Course-Level Concepts</div>
+        <div class="ts-desc">Foundational architectures aligned with Security+, Network+, and CEH — making textbook concepts visually explorable and intuitively clear.</div>
+        <div class="ts-pill">12 diagrams</div>
+      </div>
+      <div class="ts-item tc">
+        <div class="ts-bg-letter">C</div>
+        <div class="ts-track">Track C</div>
+        <div class="ts-name">CISSP Domain Architectures</div>
+        <div class="ts-desc">Two diagrams per domain across all 8 CISSP CBK domains — from GRC, NIST RMF, and security models through OWASP Top 10 and secure SDLC.</div>
+        <div class="ts-pill">16 diagrams · 8 domains</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIBRARY -->
+<section class="section" id="library" style="padding-top:0;">
+  <div class="s-inner">
+    <div class="s-head rv">
+      <div class="eyebrow">Architecture library</div>
+      <h2 class="s-title">All <span class="hl">42 Diagrams</span></h2>
+      <p class="s-desc">Filter by track or search by keyword. Click any card for the full description and component list.</p>
+    </div>
+    <div class="filter-bar rv">
+      <button class="fb on" onclick="filter('all',this)">All <span class="n">42</span></button>
+      <button class="fb" onclick="filter('A',this)">Track A <span class="n">18</span></button>
+      <button class="fb" onclick="filter('B',this)">Track B <span class="n">12</span></button>
+      <button class="fb" onclick="filter('C',this)">CISSP <span class="n">16</span></button>
+      <button class="fb" onclick="filter('live',this)"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:5px;vertical-align:middle;box-shadow:0 0 5px var(--green);"></span>Live now <span class="n">2</span></button>
+      <div class="search-box">
+        <svg class="sb-icon" width="14" height="14" stroke="currentColor" stroke-width="1.5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <input class="sb-input" type="text" placeholder="Search diagrams..." oninput="search(this.value)">
+      </div>
+    </div>
+    <div class="card-grid" id="grid"></div>
+  </div>
+</section>
+
+<!-- CISSP SECTION -->
+<section class="section cissp-section" id="cissp">
+  <div class="s-inner">
+    <div class="s-head rv">
+      <div class="eyebrow">CISSP CBK</div>
+      <h2 class="s-title">All 8 domains, <span class="hl">visualised</span></h2>
+      <p class="s-desc">Two architecture diagrams per domain — covering the core frameworks, models, and operational processes that define each CISSP domain.</p>
+    </div>
+    <div id="cisspGrid" class="rv"></div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="section" id="roadmap">
+  <div class="s-inner">
+    <div class="s-head rv">
+      <div class="eyebrow">Build Roadmap</div>
+      <h2 class="s-title">What's <span class="hl">coming next</span></h2>
+      <p class="s-desc">Updated from github.com/mizanpranto as each diagram is completed. Star the repo at github.com/mizanpranto to follow progress.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:860px;" class="rv">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;">
+        <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--blue);margin-bottom:16px;">TRACK A — SECURITY</div>
+        <div id="roadA"></div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;">
+        <div style="font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--amber);margin-bottom:16px;">TRACK B + CISSP DOMAINS</div>
+        <div id="roadB"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-brand-icon">S</div>
+      SecArch Lab
+    </div>
+    <div class="footer-meta">42 architecture diagrams · 3 tracks · 8 CISSP domains · Updated from github.com/mizanpranto</div>
+    <div class="footer-links">
+      <a href="#library">Library</a>
+      <a href="#cissp">CISSP</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="https://github.com/mizanpranto" target="_blank">GitHub ↗</a>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="overlay" id="ov" onclick="closeM(event)">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-track" id="mTrack"></div>
+      <div class="modal-title" id="mTitle"></div>
+      <div class="modal-sub" id="mSub"></div>
+      <button class="modal-x" onclick="closeM()">&times;</button>
+    </div>
+    <div class="modal-bd">
+      <p class="modal-desc" id="mDesc"></p>
+      <div class="modal-lbl">Core components</div>
+      <div class="modal-comps" id="mComps"></div>
+      <div class="modal-btns" id="mBtns"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SA=[
+ {id:'email',t:'A',title:'Email security architecture',sub:'Gateway · SPF/DKIM/DMARC · ATP sandbox · SIEM',live:true,link:'email-security.html',desc:'Full email security stack: SMTP connection filtering, SPF/DKIM/DMARC authentication, antivirus scanning, ATP sandbox detonation, URL rewriting with click-time protection, NLP heuristics, DLP, policy engine routing, quarantine management, and continuous SIEM monitoring with SOC feedback loop.',comps:['Email gateway','SPF/DKIM/DMARC','ATP sandbox','URL rewriting','NLP heuristics','DLP engine','Policy engine','Quarantine','SIEM','SOC']},
+ {id:'zt',t:'A',title:'Zero trust network architecture',sub:'Identity · Device · ZTNA · Microsegmentation · UEBA',live:true,link:'zero-trust.html',desc:'Complete Zero Trust across 5 zones: users & devices (remote, BYOD, IoT, workloads), control plane (IdP, MFA, device trust, risk engine, policy engine/administrator), enforcement (ZTNA, SWG, CASB, NGFW, microsegmentation, API gateway, inline DLP), protected resources, and continuous monitoring (SIEM/UEBA/SOAR).',comps:['Identity provider','MFA/Passwordless','Device trust/MDM','Risk & context engine','Policy engine (PE/PA)','ZTNA proxy','SWG','CASB','Microsegmentation','UEBA/SOAR']},
+ {id:'netsec',t:'A',title:'Network security architecture',sub:'Perimeter · DMZ · IDS/IPS · Defence-in-depth',live:false,desc:'Enterprise network security from ISP edge through perimeter firewall, DMZ design, IDS/IPS placement (inline and tap-mode), network access control, internal segmentation zones (server, user, IoT), honeypot deployment, and integrated NOC/SOC monitoring pipeline.',comps:['Perimeter firewall','DMZ','WAF','IDS/IPS','Network segmentation','NAC','Honeypot','NOC/SOC']},
+ {id:'cloud',t:'A',title:'Cloud security architecture',sub:'Multi-cloud · CSPM · CWPP · Shared responsibility',live:false,desc:'Multi-cloud security: shared responsibility model boundaries, CSPM for configuration drift, cloud workload protection (CWPP), secrets management, cloud IAM least-privilege patterns across AWS/Azure/GCP, service mesh mTLS, and cloud-native SIEM log ingestion.',comps:['CSPM','CWPP','Cloud IAM','Secrets manager','VPC security','Service mesh mTLS','Container security','Cloud SIEM']},
+ {id:'soc',t:'A',title:'SOC architecture',sub:'3-tier model · SIEM · SOAR · Playbooks · KPIs',live:false,desc:'Complete Security Operations Centre: 3-tier analyst model, full tool ecosystem (SIEM, EDR, TIP, SOAR), alert triage workflow, escalation matrix, playbook library, shift handover process, SLA enforcement, and operational KPI dashboard.',comps:['Tier 1/2/3 model','SIEM/XDR','EDR','Threat intel platform','SOAR playbooks','Case management','Shift handover','KPI/SLA metrics']},
+ {id:'iam',t:'A',title:'IAM architecture',sub:'JML lifecycle · SAML/OIDC/OAuth · SSO · PAM · IGA',live:false,desc:'End-to-end IAM: joiner/mover/leaver automation from HR, directory services, SAML 2.0/OIDC/OAuth 2.0 federation, SSO portal, privileged access management with JIT elevation and session recording, and identity governance with access certification cycles.',comps:['HR system source','JML automation','Active Directory/LDAP','SAML/OIDC/OAuth 2.0','MFA','SSO portal','PAM vault + JIT','IGA/access reviews']},
+ {id:'pki',t:'A',title:'PKI architecture',sub:'CA hierarchy · Certificate lifecycle · HSM · OCSP/CRL',live:false,desc:'Full PKI: root CA, intermediate CA hierarchy, registration authority, certificate lifecycle (issue/renew/revoke), OCSP responder, CRL distribution, HSM key storage, certificate transparency, and auto-enrolment.',comps:['Root CA','Intermediate CA','Registration authority','OCSP responder','CRL distribution','HSM','Certificate templates','Auto-enrolment']},
+ {id:'endpoint',t:'A',title:'Endpoint security architecture',sub:'EDR · MDM · Patch management · DLP agent',live:false,desc:'Layered endpoint security: device enrolment, MDM/EMM compliance policies, EDR agent telemetry and response, patch management workflow by severity tier, application whitelisting, host-based firewall, full-disk encryption, and local DLP agent.',comps:['MDM/EMM','EDR agent','Patch management','App whitelisting','Host firewall','Disk encryption','UEBA agent','DLP agent']},
+ {id:'waf',t:'A',title:'Web application security architecture',sub:'WAF · API gateway · Bot management · RASP',live:false,desc:'Web and API security: WAF rule sets (OWASP CRS), API gateway OAuth 2.0 token validation, bot management, RASP for runtime application protection, CDN-level rate limiting, and DAST integration in the DevSecOps pipeline.',comps:['WAF (OWASP CRS)','API gateway','Bot management','RASP','CDN/rate limiting','DAST scanner','OAuth 2.0 validation','SAST in CI/CD']},
+ {id:'ir',t:'A',title:'Incident response architecture',sub:'NIST 800-61 · PICERL · SOAR · Evidence chain',live:false,desc:'IR lifecycle following NIST SP 800-61: detection, triage, analysis, containment (isolation/block/revoke), eradication, recovery, post-incident review. SOAR playbook automation and forensic evidence chain of custody.',comps:['Detection triggers','Triage workflow','Containment actions','SOAR playbooks','Evidence acquisition','Forensic imaging','Recovery steps','Post-incident review']},
+ {id:'siem2',t:'A',title:'SIEM / XDR architecture',sub:'Log ingestion · Normalisation · Correlation · Alerting',live:false,desc:'SIEM/XDR platform: multi-source log ingestion (endpoint/network/cloud/identity), normalisation and parsing pipeline, correlation engine with rule library, alert triage queue, and bidirectional SOAR integration for automated response.',comps:['Log sources','Syslog/CEF/JSON','Parsing & normalisation','Correlation engine','Detection rules','Alert triage queue','SOAR integration','Threat hunting']},
+ {id:'datasec',t:'A',title:'Data security architecture',sub:'Classification · DLP · Encryption · RMS · Governance',live:false,desc:'Data-centric security: classification taxonomy (Public → Restricted), automated data discovery and labelling, inline DLP across all channels, AES-256 encryption at rest, TLS 1.3 in transit, Rights Management Services, and data access governance with full audit trail.',comps:['Classification taxonomy','Data discovery/tagging','Inline DLP','Encryption at rest','TLS in transit','RMS/IRM','Access governance','Audit logging']},
+ {id:'wireless',t:'A',title:'Wireless security architecture',sub:'802.1X · WPA3-Enterprise · WIPS · Guest isolation',live:false,desc:'Enterprise wireless security: 802.1X EAP authentication, WPA3 Enterprise with RADIUS backend, wireless IPS for rogue AP detection, RF monitoring, guest VLAN isolation with captive portal, and device posture assessment at connection time.',comps:['802.1X/EAP','WPA3 Enterprise','RADIUS server','WIPS sensor','Rogue AP detection','Guest VLAN','Captive portal','RF monitoring']},
+ {id:'ti',t:'A',title:'Threat intelligence architecture',sub:'Feeds · TIP · STIX/TAXII · IOC actioning',live:false,desc:'Threat intelligence programme: commercial and OSINT feed ingestion, TIP normalisation, STIX/TAXII standardisation, analyst enrichment workflow, and automated IOC actioning into gateway block lists and SIEM watchlists.',comps:['Commercial TI feeds','OSINT feeds','TIP platform','STIX/TAXII','Analyst enrichment','IOC actioning','SIEM watchlists','Threat hunting']},
+ {id:'devsecops',t:'A',title:'DevSecOps pipeline architecture',sub:'SAST · SCA · Secrets · DAST · Policy gates',live:false,desc:'Security at every CI/CD stage: pre-commit hooks, SAST in build, SCA for open-source dependencies, container image scanning, secrets detection, DAST in staging, and policy-as-code gates that block deployment on failure.',comps:['Pre-commit hooks','SAST','SCA/dependency scan','Container image scan','Secrets detection','DAST','Policy-as-code gates','Runtime protection']},
+ {id:'k8s',t:'A',title:'Container & Kubernetes security',sub:'RBAC · Network policy · Pod security · Runtime',live:false,desc:'Kubernetes security: cluster hardening, RBAC with least-privilege role bindings, network policies for pod-level isolation, pod security standards (restricted profile), container registry scanning, runtime threat detection, service mesh mTLS, and audit logging.',comps:['RBAC','Network policies','Pod security standards','Registry scanning','Runtime detection','Secrets manager','Service mesh mTLS','Kubernetes audit logs']},
+ {id:'physical',t:'A',title:'Physical security architecture',sub:'Concentric layers · CCTV · Biometric · Data centre',live:false,desc:'Physical security in concentric defence layers: perimeter fencing and lighting, vehicle anti-ram barriers, multi-factor access control (card + PIN + biometric), CCTV with VMS, mantraps at sensitive zones, data centre cage access controls, and environmental monitoring.',comps:['Perimeter barriers','Vehicle control','Card + biometric','Mantraps','CCTV/VMS','Visitor management','Environmental sensors','Guard patrol routes']},
+ {id:'crypto',t:'A',title:'Cryptography & key management',sub:'Symmetric · Asymmetric · HSM · KMS · Crypto-agility',live:false,desc:'Enterprise cryptography: algorithm selection (AES-256, RSA-4096, ECC P-384), key lifecycle management, HSM deployment tiers, cloud KMS integration (AWS KMS, Azure Key Vault, GCP Cloud KMS), certificate automation, and post-quantum migration roadmap.',comps:['AES-256/ChaCha20','RSA/ECC','Key lifecycle','HSM (on-prem)','Cloud KMS','Certificate automation','Key ceremony','Crypto-agility roadmap']},
+];
+const COURSE=[
+ {id:'osi',t:'B',title:'OSI model security controls',sub:'Layer-by-layer attack surface & defence mapping',live:false,desc:'Each OSI layer mapped to primary security controls, attack surface, relevant protocols, and hardening recommendations. Interactive layer selection reveals threats and defences from physical cabling through application protocols.',comps:['Physical (L1)','Data link (L2)','Network (L3)','Transport (L4)','Session (L5)','Presentation (L6)','Application (L7)','Cross-layer attacks']},
+ {id:'topo',t:'B',title:'Network topology & attack surfaces',sub:'Flat · Segmented · DMZ · Hub-spoke · Mesh',live:false,desc:'Network topologies compared for security properties, attack surfaces, and recommended controls. Flat vs segmented vs Zero Trust with annotated lateral movement paths and mitigations for each topology.',comps:['Flat network','Segmented VLAN','DMZ architecture','Hub-spoke WAN','Mesh topology','Microsegmented','SD-WAN','Hybrid cloud']},
+ {id:'attacks',t:'B',title:'Network attack taxonomy',sub:'DoS · MitM · Spoofing · Session hijacking · DNS',live:false,desc:'Structured taxonomy of network attacks by category, mechanism, OSI-layer mapping, detection indicator, and mitigation. Covers volumetric DoS through protocol abuse and session hijacking.',comps:['DoS/DDoS','MitM/ARP poisoning','IP/MAC spoofing','DNS attacks','Replay attacks','Session hijacking','VLAN hopping','BGP hijacking']},
+ {id:'malware',t:'B',title:'Malware taxonomy & kill chain',sub:'Types · Cyber kill chain · MITRE ATT&CK',live:false,desc:'Malware classification mapped to Cyber Kill Chain stages and MITRE ATT&CK techniques, with detection indicators and response actions at each phase of compromise.',comps:['Virus/Worm','Trojan/RAT','Ransomware','Rootkit','Spyware/Adware','Fileless malware','Kill chain stages','MITRE ATT&CK']},
+ {id:'social',t:'B',title:'Social engineering attack framework',sub:'Phishing · Vishing · BEC · Pretexting · Baiting',live:false,desc:'Social engineering taxonomy: attack vectors, psychological principles exploited, detection signals, and countermeasures per vector — from mass phishing to targeted BEC campaigns.',comps:['Phishing','Spear-phishing','Vishing','Smishing','Pretexting','Baiting','BEC','Tailgating/piggybacking']},
+ {id:'acm',t:'B',title:'Access control models',sub:'DAC · MAC · RBAC · ABAC · Rule-based',live:false,desc:'All major access control models compared and contrasted: DAC, MAC, RBAC, ABAC, and Rule-Based. Decision flowchart for model selection, with real-world implementation examples for each.',comps:['DAC','MAC','RBAC','ABAC','Rule-based AC','Need-to-know','Least privilege','Separation of duties']},
+ {id:'cryptofund',t:'B',title:'Cryptography fundamentals',sub:'Symmetric · Asymmetric · Hashing · PKI overview',live:false,desc:'Cryptography from first principles: symmetric vs asymmetric algorithms, hash function properties, digital signatures, Diffie-Hellman and ECDH key exchange, and PKI chains of trust.',comps:['Symmetric (AES)','Asymmetric (RSA/ECC)','SHA-2/SHA-3 hashing','Digital signatures','DH key exchange','ECDH','PKI chain of trust','TLS overview']},
+ {id:'tls',t:'B',title:'TLS 1.3 handshake architecture',sub:'Client hello · ECDHE · Session keys · AEAD',live:false,desc:'Step-by-step TLS 1.3 handshake: client hello, server certificate and ECDHE key share, session key derivation via HKDF, AEAD-encrypted application data flow, and perfect forward secrecy guarantee.',comps:['Client hello','Server certificate','CA certificate chain','ECDHE key share','HKDF key derivation','AEAD encryption','Certificate pinning','HSTS/HPKP']},
+ {id:'vuln',t:'B',title:'Vulnerability management lifecycle',sub:'Discovery · CVSS 3.1 · Risk-based · SLA tracking',live:false,desc:'End-to-end vulnerability management: continuous asset discovery, authenticated scanning, CVSS 3.1 risk scoring with environmental metrics, risk-based prioritisation, patch SLA enforcement, exception workflow, and executive KPI reporting.',comps:['Asset discovery','Scan scheduling','Credentialed scans','CVSS 3.1 scoring','Risk prioritisation','Patch SLA tiers','Exception process','KPI/metrics']},
+ {id:'pentest',t:'B',title:'Penetration testing methodology',sub:'PTES · Recon · Exploitation · Lateral · Reporting',live:false,desc:'Full penetration testing lifecycle following PTES: pre-engagement scoping, passive and active reconnaissance, vulnerability scanning, exploitation, privilege escalation, lateral movement, persistence, and structured reporting.',comps:['Pre-engagement scope','Passive recon','Active scanning','Vulnerability exploit','Privilege escalation','Lateral movement','Persistence','Structured report']},
+ {id:'fwtypes',t:'B',title:'Firewall types & architectures',sub:'Packet filter → Stateful → App proxy → NGFW → WAF',live:false,desc:'Evolution of firewall architectures from packet-filtering through stateful inspection, application proxy, NGFW with deep packet inspection, to WAF — with topology placement diagrams for each.',comps:['Packet filter','Stateful inspection','Application proxy','NGFW (L7 DPI)','WAF (OWASP)','Cloud-native firewall','iptables/nftables','Implicit deny']},
+ {id:'bcp',t:'B',title:'Business continuity & DR architecture',sub:'BIA · RTO/RPO · Site tiers · Failover workflow',live:false,desc:'BCP and DR architecture: business impact analysis, RTO/RPO target-setting by system tier, 3-2-1 backup strategy, cold/warm/hot site comparison, failover workflow, recovery procedures, and DR test schedule.',comps:['Business impact analysis','RTO/RPO targets','Backup tiers (3-2-1)','Cold/warm/hot site','Failover workflow','Recovery procedures','DR test schedule','Communication plan']},
+];
+const CISSP=[
+ {domain:'Domain 1 · Security & risk management',dc:'#534AB7',items:[
+  {id:'grm',t:'C',title:'GRC framework architecture',sub:'Governance · Risk · Compliance · Policy hierarchy',live:false,desc:'GRC framework: board-level security governance, risk committee, policy hierarchy (policy→standard→procedure→guideline), control framework mapping (ISO 27001, NIST CSF, CIS Controls), compliance monitoring, and internal/external audit lifecycle.',comps:['Board/CISO governance','Risk committee','Policy hierarchy','ISO 27001 controls','NIST CSF mapping','Compliance monitoring','Internal audit','External audit']},
+  {id:'rmf',t:'C',title:'NIST risk management framework',sub:'Prepare · Categorise · Select · Implement · Authorise',live:false,desc:'Full NIST RMF 7-step lifecycle: Prepare (roles and context), Categorise (FIPS 199/200 impact levels), Select controls (SP 800-53 rev 5), Implement, Assess (SP 800-53A), Authorise (ATO/IATO), and Monitor with POA&M management.',comps:['Prepare (context)','Categorise (FIPS 199)','Select (SP 800-53)','Implement controls','Assess (SP 800-53A)','Authorise (ATO)','Monitor','POA&M management']},
+ ]},
+ {domain:'Domain 2 · Asset security',dc:'#0F6E56',items:[
+  {id:'dataclass',t:'C',title:'Data classification architecture',sub:'Taxonomy · Auto-labelling · Handling · Lifecycle',live:false,desc:'Enterprise data classification: government vs commercial schemes, automated discovery and labelling workflow, handling requirements per classification tier, and full data lifecycle from creation through secure destruction.',comps:['Classification levels','Data discovery','Auto-labelling','Handling procedures','Retention policy','Secure destruction','Owner/custodian model','Regulatory mapping']},
+  {id:'assetlc',t:'C',title:'Information asset lifecycle',sub:'Create · Store · Use · Share · Archive · Destroy',live:false,desc:'Six-phase information asset lifecycle: creation controls, storage security (encryption, access control), use and processing requirements, sharing/transmission (DLP, DRM), archival standards, retention scheduling, and destruction methods per media type.',comps:['Data creation controls','Secure storage','Access controls','Transmission security','DRM/DLP','Retention schedule','Secure disposal','Chain of custody']},
+ ]},
+ {domain:'Domain 3 · Security architecture & engineering',dc:'#854F0B',items:[
+  {id:'secmodels',t:'C',title:'Security models — Bell-LaPadula to Clark-Wilson',sub:'Confidentiality · Integrity · State machines',live:false,desc:'Classic security models side by side: Bell-LaPadula (no read up/no write down), Biba (no read down/no write up), Clark-Wilson (well-formed transactions for integrity), and Brewer-Nash Chinese Wall (conflict-of-interest prevention).',comps:['Bell-LaPadula','Biba model','Clark-Wilson','Brewer-Nash/Chinese Wall','State machine model','Non-interference','Lattice model','Graham-Denning']},
+  {id:'entarch',t:'C',title:'Enterprise security architecture frameworks',sub:'SABSA · TOGAF · Zachman · NIST CSF',live:false,desc:'Enterprise architecture frameworks compared: SABSA contextual-to-component six layers, TOGAF ADM security phases, Zachman framework security cells, and NIST CSF Identify/Protect/Detect/Respond/Recover function mapping.',comps:['SABSA six layers','TOGAF ADM phases','Zachman cells','NIST CSF functions','Business drivers','Risk context','Security services','Component architecture']},
+ ]},
+ {domain:'Domain 4 · Communication & network security',dc:'#185FA5',items:[
+  {id:'netlayers',t:'C',title:'Network security by OSI layer',sub:'L1–L7 controls · Attacks · Protocols · Hardening',live:false,desc:'Comprehensive OSI-layer security reference: control technologies, attack categories, detection mechanisms, and hardening recommendations for every layer from physical through application, including cryptographic controls.',comps:['Physical layer controls','L2 security (802.1X)','IPSec/VPN','TCP/TLS','Stateful firewall/IPS','Encryption services','Application WAF','Protocol hardening']},
+  {id:'sase',t:'C',title:'SASE / SD-WAN security architecture',sub:'ZTNA · SWG · CASB · FWaaS · Cloud-native',live:false,desc:'Secure Access Service Edge converging SD-WAN, ZTNA, SWG, CASB, and FWaaS into a cloud-delivered fabric. Traffic steering, identity-based policy enforcement across cloud PoPs, and unified management plane.',comps:['SD-WAN fabric','ZTNA connector','Secure Web Gateway','CASB','FWaaS','Cloud PoPs','Identity-based routing','Centralised policy']},
+ ]},
+ {domain:'Domain 5 · Identity & access management',dc:'#3B6D11',items:[
+  {id:'iamfull',t:'C',title:'Full IAM architecture',sub:'JML · SAML/OIDC · SSO · PAM · IGA',live:false,desc:'Complete IAM: joiner/mover/leaver automation from HR, directory synchronisation, SAML 2.0/OIDC/OAuth 2.0 federation, SSO with adaptive MFA, PAM with JIT elevation and session recording, and IGA with access certification campaigns.',comps:['HR system source','JML automation','Active Directory/LDAP','SAML/OIDC/OAuth 2.0','Adaptive MFA','SSO portal','PAM vault + JIT','IGA/access reviews']},
+  {id:'authz',t:'C',title:'Authorisation framework architecture',sub:'RBAC · ABAC · Policy decision · Enforcement',live:false,desc:'Authorisation from identity claim to resource access: role assignment, permission sets, ABAC policy rule evaluation, policy decision point, policy enforcement point at the resource boundary, and periodic access certification review.',comps:['Identity claims','Role assignment','Permission sets','ABAC policy rules','Policy decision point','Policy enforcement point','Scoped resource access','Access certification']},
+ ]},
+ {domain:'Domain 6 · Security assessment & testing',dc:'#791F1F',items:[
+  {id:'vulnarch',t:'C',title:'Vulnerability assessment programme',sub:'Asset discovery · CVSS · Patch SLA · KPIs',live:false,desc:'Enterprise vulnerability management: continuous asset discovery, authenticated scanning cadence, CVSS 3.1 risk scoring, risk-prioritised remediation with patch SLA by severity, exception management, and executive KPI dashboard.',comps:['Asset discovery','Scan scheduling','Credentialed scans','CVSS 3.1 scoring','Risk prioritisation','Patch SLA enforcement','Exception workflow','Executive KPIs']},
+  {id:'sdlctest',t:'C',title:'Security testing throughout the SDLC',sub:'Threat model · SAST · DAST · IAST · Pen test',live:false,desc:'Security testing at every SDLC gate: threat modelling in design, SAST and SCA in build, IAST in test, DAST in staging, and formal penetration test pre-production — with security regression tests in every sprint.',comps:['Threat modelling','SAST (build)','SCA (dependencies)','IAST (test)','DAST (staging)','Pre-release pen test','Bug bounty programme','Security regression']},
+ ]},
+ {domain:'Domain 7 · Security operations',dc:'#444441',items:[
+  {id:'socfull',t:'C',title:'SOC architecture & operations model',sub:'3-tier · SIEM · SOAR · Playbooks · SLA metrics',live:false,desc:'Full SOC: 3-tier analyst model, tool ecosystem (SIEM, EDR, TIP, SOAR), alert triage workflow, escalation matrix, playbook library, shift handover checklist, and SLA/KPI measurement framework.',comps:['Tier 1/2/3 model','SIEM/XDR','EDR','Threat intel platform','SOAR playbooks','Case management','Shift handover','SLA/KPI metrics']},
+  {id:'dfir',t:'C',title:'Digital forensics & incident response',sub:'Evidence acquisition · Chain of custody · Legal hold',live:false,desc:'DFIR architecture: live volatile memory vs dead disk acquisition, chain of custody documentation, forensic analysis workstation, legal hold and eDiscovery integration, timeline reconstruction, and court-admissible reporting standards.',comps:['First responder steps','Live memory acquisition','Forensic disk imaging','Chain of custody','Analysis workstation','Timeline reconstruction','Legal hold process','Expert witness report']},
+ ]},
+ {domain:'Domain 8 · Software development security',dc:'#712B13',items:[
+  {id:'secsdlc',t:'C',title:'Secure SDLC architecture',sub:'Requirements → Design → Code → Test → Deploy → Monitor',live:false,desc:'Security at every SDLC phase: security requirements in inception, threat modelling in design, secure coding standards in development, security QA in test, pre-production pen test, runtime protection (WAF/RASP) post-deployment, and security debt backlog per sprint.',comps:['Security requirements','Threat modelling','Secure coding standards','SAST/SCA in build','Security QA testing','Pre-prod pen test','WAF/RASP runtime','Security debt backlog']},
+  {id:'owasp',t:'C',title:'OWASP Top 10 architecture mapping',sub:'Injection · Auth · SSRF · IDOR · Misconfiguration',live:false,desc:'OWASP Top 10 mapped to architecture control layers: which infrastructure control, application control, and code-level practice mitigates each vulnerability category — with detection mechanisms for each entry.',comps:['Injection controls','Broken auth defences','SSRF prevention','IDOR/access control','Misconfiguration checks','Vulnerable component mgmt','Logging & monitoring','CSRF/XSS defences']},
+ ]},
+];
+
+const ALL=[...SA,...COURSE,...CISSP.flatMap(d=>d.items)];
+const IDX={};ALL.forEach(a=>IDX[a.id]=a);
+CISSP.forEach(d=>d.items.forEach(a=>{IDX[a.id]={...IDX[a.id]||a,_domain:d.domain,_dc:d.dc};}));
+let filt='all',sq='';
+
+function mkCard(a){
+  const tc=a.t==='A'?'ta':a.t==='B'?'tb':'tc';
+  const tl=a.t==='A'?'Track A · Security':a.t==='B'?'Track B · Course':'Track C · CISSP';
+  return `<div class="acard ${tc}${a.live?' is-built':''}"
+    data-t="${a.t}" data-live="${a.live||false}"
+    data-kw="${a.title.toLowerCase()} ${(a.sub||'').toLowerCase()}"
+    onclick="openM('${a.id}')">
+    <div class="card-track">${tl}</div>
+    <div class="card-title">${a.title}</div>
+    <div class="card-sub">${a.sub||''}</div>
+    <div class="card-desc">${a.desc.slice(0,110)}${a.desc.length>110?'…':''}</div>
+    <div class="card-comps">${a.comps.slice(0,5).map(c=>`<span class="card-comp">${c}</span>`).join('')}</div>
+    <div class="card-footer">
+      <span class="status ${a.live?'s-live':'s-plan'}">${a.live?'Live now':'Planned'}</span>
+      <div class="card-arrow">→</div>
+    </div>
+  </div>`;
+}
+
+function renderGrid(){
+  const cards=ALL.filter(a=>{
+    if(filt==='A'&&a.t!=='A')return false;
+    if(filt==='B'&&a.t!=='B')return false;
+    if(filt==='C'&&a.t!=='C')return false;
+    if(filt==='live'&&!a.live)return false;
+    if(sq&&!(a.title+' '+(a.sub||'')).toLowerCase().includes(sq))return false;
+    return true;
+  });
+  document.getElementById('grid').innerHTML=cards.length?cards.map(mkCard).join(''):`<div class="empty">No diagrams match this filter.</div>`;
+}
+
+function renderCISSP(){
+  document.getElementById('cisspGrid').innerHTML=CISSP.map(d=>`
+    <div class="domain-block">
+      <div class="domain-label-row">
+        <div class="domain-label" style="background:${d.dc}14;border-color:${d.dc}40;color:${d.dc};font-family:var(--mono);font-size:10px;">${d.domain}</div>
+        <div class="domain-rule"></div>
+      </div>
+      <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+        ${d.items.map(a=>mkCard({...a,_domain:d.domain,_dc:d.dc})).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function mkRd(lbl,txt,done){
+  return `<div style="display:flex;gap:10px;margin-bottom:14px;align-items:flex-start;">
+    <div style="flex-shrink:0;margin-top:3px;width:16px;height:16px;border-radius:50%;border:1px solid ${done?'var(--blue)':'var(--border2)'};background:${done?'var(--blue)':'transparent'};display:flex;align-items:center;justify-content:center;">
+      ${done?'<svg width="8" height="8" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:9.5px;color:${done?'var(--blue)':'var(--text3)'};letter-spacing:.06em;margin-bottom:2px;">${lbl}</div>
+      <div style="font-size:13px;color:${done?'var(--text)':'var(--text2)'};font-weight:300;">${txt}</div>
+    </div></div>`;
+}
+document.getElementById('roadA').innerHTML=[
+  mkRd('✓ DONE','Email security architecture — gateway, SPF/DKIM/DMARC, ATP, SIEM',true),
+  mkRd('✓ DONE','Zero trust — 5 zones, 35+ components, UEBA, SOAR',true),
+  mkRd('UP NEXT','Network security — DMZ, IDS/IPS, segmentation zones',false),
+  mkRd('QUEUED','SOC architecture — 3-tier model, SOAR playbooks',false),
+  mkRd('QUEUED','Cloud security — AWS/Azure/GCP multi-cloud',false),
+  mkRd('QUEUED','IAM architecture — JML lifecycle, PAM, IGA',false),
+].join('');
+document.getElementById('roadB').innerHTML=[
+  mkRd('UP NEXT','OSI security controls — layer-by-layer threat mapping',false),
+  mkRd('QUEUED','TLS 1.3 handshake — certificate chain, ECDHE, AEAD',false),
+  mkRd('QUEUED','CISSP D1 — NIST RMF 7-step lifecycle',false),
+  mkRd('QUEUED','CISSP D3 — Bell-LaPadula, Biba, Clark-Wilson models',false),
+  mkRd('QUEUED','CISSP D5 — Full IAM with JML, SSO, PAM, IGA',false),
+  mkRd('QUEUED','CISSP D7 — SOC operations & DFIR architecture',false),
+].join('');
+
+function filter(f,btn){
+  filt=f;
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderGrid();
+}
+function search(v){sq=v.trim().toLowerCase();renderGrid();}
+
+function openM(id){
+  const a=IDX[id];if(!a)return;
+  const tc=a.t==='A'?'var(--blue)':a.t==='B'?'var(--amber)':'var(--purple)';
+  const tl=a.t==='A'?'Track A — Security Architecture':a.t==='B'?'Track B — Course Concept':'Track C — CISSP'+(a._domain?' · '+a._domain:'');
+  document.getElementById('mTrack').style.color=tc;
+  document.getElementById('mTrack').textContent=tl;
+  document.getElementById('mTitle').textContent=a.title;
+  document.getElementById('mSub').textContent=a.sub||'';
+  document.getElementById('mDesc').textContent=a.desc;
+  document.getElementById('mComps').innerHTML=a.comps.map(c=>`<span class="modal-comp">${c}</span>`).join('');
+  const b=document.getElementById('mBtns');
+  b.innerHTML=a.live&&a.link?
+    `<a href="${a.link}" class="mbtn mbtn-p">View interactive diagram →</a><button class="mbtn mbtn-s" onclick="closeM()">Close</button>`:
+    `<button class="mbtn mbtn-s" onclick="closeM()">Close</button><span class="modal-coming">Coming soon · follow on github.com/mizanpranto</span>`;
+  document.getElementById('ov').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeM(e){
+  if(e&&e.target!==document.getElementById('ov'))return;
+  document.getElementById('ov').classList.remove('on');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM();});
+function setNav(el){document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));el.classList.add('active');}
+
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});},{threshold:.08});
+document.querySelectorAll('.rv').forEach(el=>ro.observe(el));
+
+renderGrid();
+renderCISSP();
+setTimeout(()=>document.querySelectorAll('.rv').forEach(el=>ro.observe(el)),200);
+</script>
+</body>
+</html>
