@@ -387,110 +387,356 @@ footer{position:relative;z-index:1;padding:32px 40px;border-top:1px solid var(--
       <p class="sec-desc">Five security zones from external internet through gateway inspection, policy decisions, internal delivery, and continuous monitoring. Click any component for a detailed explanation, or use the trace buttons to animate a message flow.</p>
     </div>
 
-    <div class="ctrl-bar rv">
-      <button class="cbtn go" onclick="traceFlow('inbound')">▶ Trace inbound email</button>
-      <button class="cbtn go-green" onclick="traceFlow('outbound')">▶ Trace outbound email</button>
-      <button class="cbtn go-red" onclick="traceFlow('phishing')">▶ Simulate phishing attack</button>
-      <button class="cbtn go-amber" onclick="traceFlow('malware')">▶ Simulate malware delivery</button>
-      <button class="cbtn" onclick="resetArch()">↺ Reset</button>
-      <span class="ctrl-hint">Click any component for details</span>
+    <!-- SVG Flowchart Architecture -->
+    <div class="rv" style="width:100%;overflow-x:auto;">
+      <svg width="100%" viewBox="0 0 900 1160" xmlns="http://www.w3.org/2000/svg" style="font-family:'DM Sans',sans-serif;">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#4B5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="arr-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="arr-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#A78BFA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- ZONE 1: EXTERNAL INTERNET                           -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <rect x="20" y="16" width="860" height="128" rx="12" fill="none" stroke="#1A2235" stroke-width="1" stroke-dasharray="6 4"/>
+        <text x="40" y="36" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066" letter-spacing="2">ZONE 1 — EXTERNAL INTERNET</text>
+
+        <!-- Sender MTA -->
+        <g id="fc-internet" onclick="showFlowComp('internet')" style="cursor:pointer;">
+        <rect x="60" y="50" width="170" height="72" rx="8" fill="#0F1320" stroke="#1A2235" stroke-width="0.8" class="fc-rect"/>
+        <text x="145" y="82" text-anchor="middle" font-size="12" font-weight="500" fill="#E2E8F0">Sender MTA</text>
+        <text x="145" y="100" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066">External mail server</text>
+        </g>
+
+        <!-- Legitimate senders -->
+        <g id="fc-legit" onclick="showFlowComp('legit')" style="cursor:pointer;">
+        <rect x="272" y="50" width="170" height="72" rx="8" fill="#0F1320" stroke="#1A2235" stroke-width="0.8" class="fc-rect"/>
+        <text x="357" y="82" text-anchor="middle" font-size="12" font-weight="500" fill="#E2E8F0">Legitimate senders</text>
+        <text x="357" y="100" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066">Partners · SaaS · newsletters</text>
+        </g>
+
+        <!-- Phishing / BEC -->
+        <g id="fc-threats" onclick="showFlowComp('threats')" style="cursor:pointer;">
+        <rect x="484" y="50" width="170" height="72" rx="8" fill="#1A0A0A" stroke="rgba(239,68,68,0.35)" stroke-width="0.8" class="fc-rect"/>
+        <text x="569" y="82" text-anchor="middle" font-size="12" font-weight="500" fill="#FCA5A5">Phishing / BEC</text>
+        <text x="569" y="100" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7F1D1D">Social engineering threats</text>
+        </g>
+
+        <!-- Malware / Spam -->
+        <g id="fc-malware" onclick="showFlowComp('malware_src')" style="cursor:pointer;">
+        <rect x="696" y="50" width="170" height="72" rx="8" fill="#1A120A" stroke="rgba(245,158,11,0.35)" stroke-width="0.8" class="fc-rect"/>
+        <text x="781" y="82" text-anchor="middle" font-size="12" font-weight="500" fill="#FCD34D">Malware / Spam</text>
+        <text x="781" y="100" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#78350F">Payload delivery vectors</text>
+        </g>
+
+        <!-- Arrows zone1 → gateway -->
+        <line x1="145" y1="122" x2="145" y2="170" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+        <line x1="357" y1="122" x2="357" y2="170" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+        <line x1="569" y1="122" x2="450" y2="170" stroke="#EF4444" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr-red)"/>
+        <line x1="781" y1="122" x2="750" y2="170" stroke="#F59E0B" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr-amber)"/>
+        <text x="450" y="158" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066">SMTP / port 25 · 587</text>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- ZONE 2: EMAIL SECURITY GATEWAY                      -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <rect x="20" y="174" width="860" height="576" rx="12" fill="rgba(7,17,42,0.6)" stroke="rgba(59,130,246,0.3)" stroke-width="1"/>
+        <text x="40" y="194" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3B82F6" letter-spacing="2">ZONE 2 — EMAIL SECURITY GATEWAY</text>
+
+        <!-- Step 1: Connection Filtering -->
+        <g id="fc-conn" onclick="showFlowComp('conn')" style="cursor:pointer;">
+        <rect x="300" y="204" width="300" height="68" rx="8" fill="#0C1E40" stroke="rgba(59,130,246,0.3)" stroke-width="0.8" class="fc-rect"/>
+        <text x="450" y="233" text-anchor="middle" font-size="13" font-weight="500" fill="#60A5FA">Connection filtering</text>
+        <text x="450" y="253" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#3D5066">IP reputation · MX record · TLS · Rate limit</text>
+        </g>
+
+        <line x1="450" y1="272" x2="450" y2="302" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <!-- Step 2: Authentication -->
+        <g id="fc-auth" onclick="showFlowComp('auth_check')" style="cursor:pointer;">
+        <rect x="300" y="306" width="300" height="68" rx="8" fill="#0C1E40" stroke="rgba(59,130,246,0.3)" stroke-width="0.8" class="fc-rect"/>
+        <text x="450" y="335" text-anchor="middle" font-size="13" font-weight="500" fill="#60A5FA">Authentication check</text>
+        <text x="450" y="355" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#3D5066">SPF · DKIM · DMARC alignment</text>
+        </g>
+
+        <line x1="450" y1="374" x2="450" y2="404" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <!-- Step 3: Anti-Spam -->
+        <g id="fc-spam" onclick="showFlowComp('spam')" style="cursor:pointer;">
+        <rect x="300" y="408" width="300" height="68" rx="8" fill="#0C1E40" stroke="rgba(59,130,246,0.3)" stroke-width="0.8" class="fc-rect"/>
+        <text x="450" y="437" text-anchor="middle" font-size="13" font-weight="500" fill="#60A5FA">Anti-spam engine</text>
+        <text x="450" y="457" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#3D5066">Bayesian filter · heuristics · RBL</text>
+        </g>
+
+        <!-- Parallel split -->
+        <path d="M450 476 L450 498 L200 498 L200 514" fill="none" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+        <path d="M450 476 L450 498 L700 498 L700 514" fill="none" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <!-- Step 4a: URL Analysis -->
+        <g id="fc-url" onclick="showFlowComp('url')" style="cursor:pointer;">
+        <rect x="80" y="518" width="240" height="68" rx="8" fill="#0C1E40" stroke="rgba(59,130,246,0.2)" stroke-width="0.8" class="fc-rect"/>
+        <text x="200" y="547" text-anchor="middle" font-size="12" font-weight="500" fill="#60A5FA">URL analysis</text>
+        <text x="200" y="566" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066">Rewrite · sandbox · denylist</text>
+        </g>
+
+        <!-- Step 4b: Anti-Malware -->
+        <g id="fc-av" onclick="showFlowComp('av')" style="cursor:pointer;">
+        <rect x="580" y="518" width="240" height="68" rx="8" fill="#0C1E40" stroke="rgba(59,130,246,0.2)" stroke-width="0.8" class="fc-rect"/>
+        <text x="700" y="547" text-anchor="middle" font-size="12" font-weight="500" fill="#60A5FA">Anti-malware (AV)</text>
+        <text x="700" y="566" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066">Signature · heuristic scan</text>
+        </g>
+
+        <!-- Parallel join -->
+        <path d="M200 586 L200 618 L450 618" fill="none" stroke="#4B5563" stroke-width="1.2"/>
+        <path d="M700 586 L700 618 L450 618" fill="none" stroke="#4B5563" stroke-width="1.2"/>
+        <line x1="450" y1="618" x2="450" y2="638" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <!-- Step 5: ATP Sandbox -->
+        <g id="fc-atp" onclick="showFlowComp('atp')" style="cursor:pointer;">
+        <rect x="270" y="642" width="360" height="68" rx="8" fill="#160D2E" stroke="rgba(167,139,250,0.35)" stroke-width="0.8" class="fc-rect"/>
+        <text x="450" y="671" text-anchor="middle" font-size="13" font-weight="500" fill="#A78BFA">ATP sandbox</text>
+        <text x="450" y="691" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#4B3A7A">Detonate · behaviour analysis · C2 callback detect</text>
+        </g>
+
+        <line x1="450" y1="710" x2="450" y2="740" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <!-- Step 6: DLP + Encryption parallel -->
+        <path d="M450 740 L450 758 L240 758 L240 774" fill="none" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+        <path d="M450 740 L450 758 L660 758 L660 774" fill="none" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <g id="fc-dlp" onclick="showFlowComp('dlp')" style="cursor:pointer;">
+        <rect x="80" y="778" width="320" height="68" rx="8" fill="#071A14" stroke="rgba(45,212,191,0.25)" stroke-width="0.8" class="fc-rect"/>
+        <text x="240" y="807" text-anchor="middle" font-size="12" font-weight="500" fill="#2DD4BF">DLP scanning</text>
+        <text x="240" y="826" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#065040">Content · regex · data classifiers</text>
+        </g>
+
+        <g id="fc-tls" onclick="showFlowComp('tls')" style="cursor:pointer;">
+        <rect x="500" y="778" width="320" height="68" rx="8" fill="#071A14" stroke="rgba(45,212,191,0.25)" stroke-width="0.8" class="fc-rect"/>
+        <text x="660" y="807" text-anchor="middle" font-size="12" font-weight="500" fill="#2DD4BF">Encryption / TLS</text>
+        <text x="660" y="826" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#065040">TLS enforce · S/MIME · PGP</text>
+        </g>
+
+        <path d="M240 846 L240 870 L450 870" fill="none" stroke="#4B5563" stroke-width="1.2"/>
+        <path d="M660 846 L660 870 L450 870" fill="none" stroke="#4B5563" stroke-width="1.2"/>
+        <line x1="450" y1="870" x2="450" y2="896" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <!-- Policy Engine -->
+        <g id="fc-policy" onclick="showFlowComp('policy')" style="cursor:pointer;">
+        <rect x="270" y="900" width="360" height="36" rx="8" fill="#1E3A5F" stroke="rgba(59,130,246,0.5)" stroke-width="0.8" class="fc-rect"/>
+        <text x="450" y="923" text-anchor="middle" font-size="12" font-weight="500" fill="#E2E8F0">Policy engine — aggregates all verdicts</text>
+        </g>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- ZONE 3: VERDICT ENGINE                              -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <rect x="20" y="762" width="860" height="0" rx="0" fill="none"/><!-- placeholder for layout -->
+
+        <!-- Arrows out of policy engine to 3 verdicts -->
+        <path d="M450 936 L450 960 L200 960 L200 978" fill="none" stroke="#10B981" stroke-width="1.4" marker-end="url(#arr-green)"/>
+        <line x1="450" y1="936" x2="450" y2="978" stroke="#F59E0B" stroke-width="1.4" marker-end="url(#arr-amber)"/>
+        <path d="M450 936 L450 960 L700 960 L700 978" fill="none" stroke="#EF4444" stroke-width="1.4" marker-end="url(#arr-red)"/>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- ZONE 3: VERDICT ENGINE                              -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <rect x="20" y="942" width="860" height="130" rx="12" fill="rgba(10,26,18,0.5)" stroke="rgba(16,185,129,0.25)" stroke-width="1"/>
+        <text x="40" y="962" font-family="'JetBrains Mono',monospace" font-size="9" fill="#10B981" letter-spacing="2" opacity="0.7">ZONE 3 — VERDICT ENGINE</text>
+
+        <!-- Clean -->
+        <g id="fc-clean" onclick="showFlowComp('deliver')" style="cursor:pointer;">
+        <rect x="60" y="978" width="220" height="70" rx="8" fill="#0A1A0F" stroke="rgba(16,185,129,0.35)" stroke-width="0.8" class="fc-rect"/>
+        <text x="170" y="1007" text-anchor="middle" font-size="13" font-weight="500" fill="#10B981">Clean</text>
+        <text x="170" y="1027" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#064E3B">Deliver to inbox</text>
+        </g>
+
+        <!-- Suspicious -->
+        <g id="fc-quar" onclick="showFlowComp('quar')" style="cursor:pointer;">
+        <rect x="340" y="978" width="220" height="70" rx="8" fill="#1A120A" stroke="rgba(245,158,11,0.35)" stroke-width="0.8" class="fc-rect"/>
+        <text x="450" y="1007" text-anchor="middle" font-size="13" font-weight="500" fill="#F59E0B">Suspicious</text>
+        <text x="450" y="1027" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#78350F">Quarantine / user warn</text>
+        </g>
+
+        <!-- Blocked -->
+        <g id="fc-block" onclick="showFlowComp('block')" style="cursor:pointer;">
+        <rect x="620" y="978" width="220" height="70" rx="8" fill="#1A0A0A" stroke="rgba(239,68,68,0.35)" stroke-width="0.8" class="fc-rect"/>
+        <text x="730" y="1007" text-anchor="middle" font-size="13" font-weight="500" fill="#EF4444">Blocked</text>
+        <text x="730" y="1027" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#7F1D1D">SMTP reject / silent drop</text>
+        </g>
+
+        <!-- Arrow clean → internal -->
+        <line x1="170" y1="1048" x2="170" y2="1078" stroke="#10B981" stroke-width="1.4" marker-end="url(#arr-green)"/>
+
+        <!-- Arrow suspicious → quarantine store -->
+        <line x1="450" y1="1048" x2="730" y2="1078" stroke="#F59E0B" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#arr-amber)"/>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- ZONE 4: INTERNAL DELIVERY                           -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <rect x="20" y="1082" width="860" height="58" rx="12" fill="rgba(10,14,26,0.6)" stroke="rgba(245,158,11,0.2)" stroke-width="1"/>
+        <text x="40" y="1102" font-family="'JetBrains Mono',monospace" font-size="9" fill="#F59E0B" letter-spacing="2" opacity="0.7">ZONE 4 — INTERNAL DELIVERY</text>
+
+        <!-- Mail Server -->
+        <g id="fc-mailsrv" onclick="showFlowComp('mailsrv')" style="cursor:pointer;">
+        <rect x="60" y="1082" width="200" height="56" rx="8" fill="#14180E" stroke="rgba(245,158,11,0.2)" stroke-width="0.8" class="fc-rect"/>
+        <text x="160" y="1105" text-anchor="middle" font-size="12" font-weight="500" fill="#E2E8F0">Mail server (MTA)</text>
+        <text x="160" y="1123" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066">Exchange / M365 / Postfix</text>
+        </g>
+
+        <!-- Arrow mail server → user inbox -->
+        <line x1="260" y1="1110" x2="308" y2="1110" stroke="#4B5563" stroke-width="1.2" marker-end="url(#arr)"/>
+
+        <!-- User Inbox -->
+        <g id="fc-inbox" onclick="showFlowComp('inbox')" style="cursor:pointer;">
+        <rect x="312" y="1082" width="200" height="56" rx="8" fill="#14180E" stroke="rgba(245,158,11,0.2)" stroke-width="0.8" class="fc-rect"/>
+        <text x="412" y="1105" text-anchor="middle" font-size="12" font-weight="500" fill="#E2E8F0">End user mailbox</text>
+        <text x="412" y="1123" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3D5066">Outlook · Webmail · mobile</text>
+        </g>
+
+        <!-- Quarantine Store -->
+        <g id="fc-quarstore" onclick="showFlowComp('quar')" style="cursor:pointer;">
+        <rect x="560" y="1082" width="200" height="56" rx="8" fill="#1A120A" stroke="rgba(245,158,11,0.25)" stroke-width="0.8" class="fc-rect"/>
+        <text x="660" y="1105" text-anchor="middle" font-size="12" font-weight="500" fill="#FCD34D">Quarantine store</text>
+        <text x="660" y="1123" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#78350F">Review · release · delete</text>
+        </g>
+
+        <!-- SIEM logging -->
+        <g id="fc-siem" onclick="showFlowComp('siem')" style="cursor:pointer;">
+        <rect x="768" y="1082" width="98" height="56" rx="8" fill="#130F26" stroke="rgba(167,139,250,0.25)" stroke-width="0.8" class="fc-rect"/>
+        <text x="817" y="1105" text-anchor="middle" font-size="11" font-weight="500" fill="#A78BFA">SIEM log</text>
+        <text x="817" y="1123" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8.5" fill="#4B3A7A">Alert · audit</text>
+        </g>
+
+        <!-- SIEM log arrow from verdict -->
+        <path d="M730 1048 L730 1068 L817 1068 L817 1082" fill="none" stroke="#A78BFA" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr-purple)"/>
+
+        <!-- Feedback loop label -->
+        <text x="450" y="1155" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9.5" fill="#2A3A50">↺  SIEM &amp; monitoring signals feed back into gateway policy engine continuously</text>
+      </svg>
     </div>
 
-    <div class="arch-wrap rv">
-
-      <!-- Zone 1: External -->
-      <div class="zone z-ext" id="zone-ext">
-        <div class="zone-hd"><span class="zone-lbl">Zone 1 — External / Internet</span><span class="zone-tag">All senders treated as untrusted</span></div>
-        <div class="zone-body">
-          <div class="comp-row">
-            <div class="comp z-ext-comp" id="c-internet" onclick="showComp('internet')"><div class="comp-title">Internet senders</div><div class="comp-sub">All external mail origins</div></div>
-            <div class="comp z-ext-comp" id="c-dns" onclick="showComp('dns')"><div class="comp-title">DNS / MX records</div><div class="comp-sub">Routing & auth lookups</div></div>
-            <div class="comp z-ext-comp" id="c-legit" onclick="showComp('legit')"><div class="comp-title">Legitimate senders</div><div class="comp-sub">Partners, SaaS, newsletters</div></div>
-            <div class="comp z-ext-comp" id="c-threats" onclick="showComp('threats')" style="border-color:rgba(239,68,68,.2);background:rgba(239,68,68,.04);"><div class="comp-title" style="color:var(--red2);">Threat actors</div><div class="comp-sub">Phishing · BEC · Malware</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="zone-arr">↓ &nbsp;SMTP connection (port 25 / 587) — all traffic enters here</div>
-
-      <!-- Zone 2: Gateway -->
-      <div class="zone z-gw" id="zone-gw">
-        <div class="zone-hd"><span class="zone-lbl">Zone 2 — Email Security Gateway</span><span class="zone-tag">Primary inspection layer · All inbound & outbound traffic passes through</span></div>
-        <div class="zone-body" style="display:flex;flex-direction:column;gap:6px;">
-          <!-- Row 1: Connection + Auth -->
-          <div class="comp-row">
-            <div class="comp comp-gw" id="c-conn" onclick="showComp('conn')"><div class="comp-title">Connection filter</div><div class="comp-sub">IP rep · TLS · Rate limit</div></div>
-            <div class="comp comp-gw" id="c-spf" onclick="showComp('spf')"><div class="comp-title">SPF check</div><div class="comp-sub">Sender IP authorisation</div></div>
-            <div class="comp comp-gw" id="c-dkim" onclick="showComp('dkim')"><div class="comp-title">DKIM verify</div><div class="comp-sub">Signature integrity</div></div>
-            <div class="comp comp-gw" id="c-dmarc" onclick="showComp('dmarc')"><div class="comp-title">DMARC policy</div><div class="comp-sub">Auth enforcement</div></div>
-          </div>
-          <!-- Row 2: Scanning -->
-          <div class="comp-row">
-            <div class="comp comp-gw" id="c-av" onclick="showComp('av')"><div class="comp-title">Antivirus scan</div><div class="comp-sub">Signatures & hashes</div></div>
-            <div class="comp comp-gw" id="c-atp" onclick="showComp('atp')"><div class="comp-title">ATP sandbox</div><div class="comp-sub">Detonation & analysis</div></div>
-            <div class="comp comp-gw" id="c-url" onclick="showComp('url')"><div class="comp-title">URL rewriting</div><div class="comp-sub">Click-time protection</div></div>
-            <div class="comp comp-gw" id="c-nlp" onclick="showComp('nlp')"><div class="comp-title">NLP / heuristics</div><div class="comp-sub">Social engineering detect</div></div>
-          </div>
-          <!-- Row 3: DLP + Policy -->
-          <div class="comp-row">
-            <div class="comp comp-gw" id="c-dlp" onclick="showComp('dlp')" style="flex:2;"><div class="comp-title">DLP — outbound scanning</div><div class="comp-sub">PII · financial data · IP detection</div></div>
-            <div class="comp comp-gw-core" id="c-policy" onclick="showComp('policy')" style="flex:2;"><div class="comp-title">Policy engine</div><div class="comp-sub">Aggregates all verdicts → routing decision</div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Verdict row -->
-      <div class="zone z-ext" id="zone-verdict" style="background:transparent;border-color:transparent;">
-        <div class="zone-hd" style="background:transparent;border:none;padding:4px 0;"><span class="zone-lbl">Policy engine outputs one of three verdicts</span></div>
-        <div class="zone-body" style="padding:0;">
-          <div class="comp-row">
-            <div class="v-block" id="c-block" onclick="showComp('block')"><div class="comp-title" style="color:var(--red);">Blocked</div><div class="comp-sub" style="color:var(--text3);">SMTP reject / silent drop</div></div>
-            <div class="v-quar" id="c-quar" onclick="showComp('quar')"><div class="comp-title" style="color:var(--amber);">Quarantine</div><div class="comp-sub" style="color:var(--text3);">Admin / user review queue</div></div>
-            <div class="v-deliver" id="c-deliver" onclick="showComp('deliver')"><div class="comp-title" style="color:var(--green);">Delivered</div><div class="comp-sub" style="color:var(--text3);">Clean — forwarded to mail server</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="zone-arr">↓ &nbsp;Delivered messages only</div>
-
-      <!-- Zone 3: Internal -->
-      <div class="zone z-int" id="zone-int">
-        <div class="zone-hd"><span class="zone-lbl">Zone 3 — Internal Infrastructure</span><span class="zone-tag">Only reachable via the gateway — no direct internet access to mail server</span></div>
-        <div class="zone-body">
-          <div class="comp-row">
-            <div class="comp comp-int" id="c-fw" onclick="showComp('fw')"><div class="comp-title">Perimeter firewall</div><div class="comp-sub">SMTP from gateway only</div></div>
-            <div class="comp comp-int" id="c-mailsrv" onclick="showComp('mailsrv')"><div class="comp-title">Mail server</div><div class="comp-sub">Exchange / M365 / Gmail</div></div>
-            <div class="comp comp-int" id="c-inbox" onclick="showComp('inbox')"><div class="comp-title">User inbox</div><div class="comp-sub">Final delivery point</div></div>
-            <div class="comp comp-int" id="c-edr" onclick="showComp('edr')" style="border-color:rgba(245,158,11,.15);"><div class="comp-title">EDR / endpoint</div><div class="comp-sub">Last line of defence</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="zone-arr">↓ &nbsp;All events, verdicts, and telemetry streamed in real time</div>
-
-      <!-- Zone 4: Monitoring -->
-      <div class="zone z-mon" id="zone-mon">
-        <div class="zone-hd"><span class="zone-lbl">Zone 4 — Security Monitoring</span><span class="zone-tag">Signals feed back into the policy engine — access can be blocked mid-session</span></div>
-        <div class="zone-body">
-          <div class="comp-row">
-            <div class="comp comp-mon" id="c-siem" onclick="showComp('siem')"><div class="comp-title">SIEM platform</div><div class="comp-sub">Correlation & alerting</div></div>
-            <div class="comp comp-mon" id="c-ueba" onclick="showComp('ueba')"><div class="comp-title">UEBA</div><div class="comp-sub">Behaviour baselining</div></div>
-            <div class="comp comp-mon" id="c-soar" onclick="showComp('soar')"><div class="comp-title">SOAR</div><div class="comp-sub">Automated response</div></div>
-            <div class="comp comp-mon" id="c-ti" onclick="showComp('ti')"><div class="comp-title">Threat intelligence</div><div class="comp-sub">IOC feeds & enrichment</div></div>
-            <div class="comp comp-mon" id="c-soc" onclick="showComp('soc')"><div class="comp-title">SOC team</div><div class="comp-sub">Human-in-the-loop</div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="feedback-row">↺ &nbsp;Monitoring signals continuously update gateway rules — the policy engine learns from every threat detected</div>
-    </div>
-
-    <!-- Detail panel -->
-    <div class="detail-panel" id="detail">
-      <div class="dp-placeholder">Click any component above to explore it in depth</div>
+    <!-- Flowchart Detail Panel -->
+    <div id="fc-detail" style="border:1px solid var(--border2);border-radius:12px;background:var(--card);padding:20px 22px;margin-top:16px;min-height:80px;transition:all .2s;">
+      <div style="color:var(--text3);font-family:var(--mono);font-size:11.5px;text-align:center;padding:18px 0;">Click any node in the flowchart above to explore it in depth</div>
     </div>
   </div>
 </section>
+
+<style>
+.fc-rect { transition: filter .15s; }
+g[id^="fc-"]:hover .fc-rect { filter: brightness(1.35); }
+g[id^="fc-"].fc-active .fc-rect { outline: 2px solid var(--blue); outline-offset: 2px; filter: brightness(1.5); }
+</style>
+
+<script>
+const FC_DATA = {
+  internet:{zone:'Zone 1 — External Internet',title:'Sender MTA',sub:'All external mail server origins',
+    desc:'Every inbound email originates from an external mail transfer agent on the public internet. Senders range from legitimate businesses and individuals to malicious actors using phishing infrastructure, compromised servers, and bulletproof hosting. In Zero Trust email security, no external sender receives any implicit trust regardless of claimed identity.',
+    points:['Billions of emails sent daily from a vast range of IP addresses, hosting providers, and geographic regions','Malicious senders frequently rotate IP addresses, domains, and sending infrastructure to evade block lists','Legitimate bulk senders (marketing platforms, SaaS notifications) must be explicitly whitelisted with care','The gateway evaluates every sender at the connection level before any email content is processed'],
+    tags:['SMTP','MTA','Zero Trust','External sender']},
+  legit:{zone:'Zone 1 — External Internet',title:'Legitimate Senders',sub:'Partners, SaaS platforms, marketing tools',
+    desc:'Legitimate external senders include business partners, suppliers, SaaS platform notifications, marketing emails, and newsletters. These must be whitelisted carefully to avoid false positives, but legitimate sender infrastructure is also frequently hijacked by attackers to bypass reputation-based filtering.',
+    points:['Shared sending platforms (SendGrid, Mailchimp) mean one bad customer can poison a shared IP reputation','Business partners must be onboarded with proper SPF/DKIM/DMARC alignment, not just IP whitelisting','Legitimate-looking domain infrastructure is frequently purchased and aged before being used in BEC campaigns','Safe sender lists should be reviewed quarterly — threat actors exploit stale whitelists actively'],
+    tags:['Whitelisting','SPF/DKIM','Shared IP risk','Partner onboarding']},
+  threats:{zone:'Zone 1 — External Internet',title:'Phishing / BEC Threat Actors',sub:'Adversaries targeting the organisation via email',
+    desc:'Email threat actors range from nation-state APT groups conducting targeted spear-phishing campaigns to organised cybercriminal groups running automated phishing and ransomware distribution. Business Email Compromise (BEC) is among the costliest attacks — no malicious attachment or URL required, just social engineering.',
+    points:['Nation-state actors (APT28, Lazarus Group) use highly targeted spear-phishing with legitimate-looking infrastructure','Cybercriminal groups run mass phishing and BEC campaigns at scale using phishing-as-a-service platforms','BEC attacks impersonate executives or trusted partners to authorise fraudulent wire transfers or data disclosure','Compromised partner accounts pass authentication checks from trusted domains — hardest category to block'],
+    tags:['APT','BEC','Phishing-as-a-Service','Spear-phishing','Credential harvesting']},
+  malware_src:{zone:'Zone 1 — External Internet',title:'Malware / Spam Sources',sub:'Payload delivery via email attachments and links',
+    desc:'Malware delivery via email is the initial access vector for the majority of ransomware incidents. Attackers embed payloads in Office documents with macros, weaponised PDFs, password-protected ZIPs (to bypass AV), and HTML files containing embedded JavaScript droppers.',
+    points:['Office macro documents (.docm, .xlsm) with auto-execute VBA are the most common malware delivery format','Password-protected ZIP/RAR files bypass gateway AV — password provided in email body or separate message','HTML smuggling: malicious executable assembled in the browser via JavaScript after delivery, avoiding gateway scanning','Polyglot files: valid file in two formats simultaneously — passes AV as one type, executes as another'],
+    tags:['Ransomware delivery','Office macros','HTML smuggling','Polyglot files','Password-protected archive']},
+  conn:{zone:'Zone 2 — Email Security Gateway',title:'Connection Filtering',sub:'IP reputation · TLS enforcement · Rate limiting',
+    desc:'The first stage of email processing, evaluated at the network layer before any message content is processed. The gateway assesses every incoming SMTP connection against real-time blocklists, checks HELO/EHLO hostname validity, enforces TLS encryption, and applies rate limiting. Suspicious connections are dropped here, saving all downstream scanning resources.',
+    points:['Sender IP checked against RBLs: Spamhaus ZEN, Talos SenderBase, Barracuda RBL, SURBL, URIBL in real time','HELO/EHLO hostname must resolve to a valid DNS record and should match the PTR record of the sending IP','TLS 1.2+ enforced for all inbound SMTP — plain-text connections logged and optionally rejected','Rate limiting: >50 messages per minute from one IP triggers temporary block; >500 is immediate permanent block','If the IP is on a known-malicious list, the connection is dropped before DATA is issued — no content processed'],
+    tags:['RBL','Spamhaus ZEN','Talos SenderBase','TLS 1.2+','Rate limiting','HELO validation']},
+  auth_check:{zone:'Zone 2 — Email Security Gateway',title:'Authentication Check',sub:'SPF · DKIM · DMARC — sender identity verification',
+    desc:'Three complementary DNS-based protocols work together to verify a sender\'s identity. SPF checks if the sending IP is authorised, DKIM verifies message integrity via cryptographic signature, and DMARC unifies both results and defines the enforcement action. All three must pass and align for full authentication.',
+    points:['SPF (RFC 7208): gateway queries the MAIL FROM domain DNS for v=spf1 TXT record and checks if sending IP is listed','DKIM (RFC 6376): gateway retrieves the public key from _domainkey DNS subdomain and validates the DKIM-Signature header','DMARC (RFC 7489): checks alignment of SPF/DKIM results with the visible header From domain; applies p=none/quarantine/reject','Authentication failure does not automatically block — DMARC policy of the sending domain determines action','p=reject on your own domain eliminates spoofed emails impersonating your organisation to external recipients'],
+    tags:['SPF','DKIM','DMARC','DNS TXT','RFC 7208','RFC 6376','RFC 7489']},
+  spam:{zone:'Zone 2 — Email Security Gateway',title:'Anti-Spam Engine',sub:'Bayesian filtering · Heuristics · Real-time blocklists',
+    desc:'The anti-spam engine applies a battery of statistical, rule-based, and reputation-based techniques to score every message. Spam scoring considers hundreds of signals across the message envelope, headers, body text, HTML structure, image ratios, and embedded URLs.',
+    points:['Bayesian classifier trained on millions of spam/ham examples — learns organisation-specific patterns over time','Heuristic rules score signals: all-caps subject, excessive punctuation, image-only body, hidden text, deceptive HTML','URI reputation: all embedded URLs checked against SURBL and URIBL domain blocklists','Header analysis: Received chain anomalies, mismatched Message-IDs, and timestamp inconsistencies scored','Composite spam score threshold configurable per domain — typically >5.0 = quarantine, >10.0 = block'],
+    tags:['Bayesian filter','Heuristics','SURBL','URIBL','Spam score','Header analysis']},
+  url:{zone:'Zone 2 — Email Security Gateway',title:'URL Analysis & Rewriting',sub:'Click-time protection · All links rewritten through proxy',
+    desc:'URL rewriting is the most critical control for delayed-activation phishing — attacks where the destination URL is clean at delivery but becomes malicious hours later. All hyperlinks in email bodies are replaced with gateway proxy wrappers. When a user clicks, the gateway checks the destination in real time.',
+    points:['Every URL replaced: https://gateway.example.com/track?url=https://original-destination.com','At click time: destination URL re-evaluated against threat intelligence updated since email delivery','Catches late-activation phishing: a legitimate-looking URL that becomes malicious after delivery still gets blocked','User sees a warning page with threat details if the URL has been reclassified as malicious post-delivery','Limitation: sophisticated actors use time-locked URLs and QR codes in image attachments to bypass rewriting'],
+    tags:['Click-time protection','Proxy wrapper','Delayed detonation catch','QR code limitation','Post-delivery reclassification']},
+  av:{zone:'Zone 2 — Email Security Gateway',title:'Anti-Malware / AV Scan',sub:'Signature detection · Hash matching · Multi-engine parallel scan',
+    desc:'The antivirus layer provides rapid detection of known malware using signature databases and file hash matching. It is the fastest detection layer and blocks all previously identified malware families immediately. Multiple AV engines run in parallel for higher coverage.',
+    points:['SHA-256 hash of each attachment compared against malware threat intelligence databases in real time','Multiple AV engines (Bitdefender, Sophos, ClamAV) run in parallel — one detection = block regardless of other results','File type analysis goes beyond extension — file magic bytes are read to detect renamed executables','Macro analysis in Office documents: detects auto-open macros, obfuscated VBA, and known exploit signatures','Limitation: only detects previously known threats. Novel or modified malware passes to the ATP sandbox layer'],
+    tags:['Signature-based','SHA-256 hash','Multi-engine','Macro analysis','ClamAV','Bitdefender']},
+  atp:{zone:'Zone 2 — Email Security Gateway',title:'ATP Sandbox',sub:'Advanced Threat Protection · Behavioural detonation in isolated VM',
+    desc:'The ATP sandbox is the most powerful detection layer for novel and evasive threats. Unknown or suspicious files are detonated in an isolated virtual machine that mirrors a real user endpoint. Every system call, network connection, file write, and registry change is monitored.',
+    points:['Sandbox VM images match organisation\'s endpoint configuration — same OS version, installed apps, user privileges','Execution monitoring: process trees, child process spawning, code injection attempts all captured and scored','Network monitoring: any C2 callback, DNS resolution, or HTTP request from the detonated file is flagged','File system monitoring: new file drops, executable downloads, and persistence mechanisms detected','Anti-evasion: sandbox detects sleep timers, VM detection code, and user interaction requirements','Typical analysis time: 30–120 seconds. Email held in queue pending verdict.'],
+    tags:['VM detonation','C2 callback detection','Process monitoring','Anti-evasion','30–120s analysis','Cuckoo sandbox']},
+  dlp:{zone:'Zone 2 — Email Security Gateway',title:'DLP Scanning',sub:'Data Loss Prevention · Sensitive content inspection on outbound email',
+    desc:'The DLP engine inspects all outbound email before it leaves the organisation. It detects sensitive content in email bodies and attachments using regex patterns, machine learning classifiers, and data fingerprinting to prevent both accidental and intentional data exfiltration.',
+    points:['PII detection: credit card numbers (Luhn algorithm), national ID numbers, passport numbers','Financial data: bank account numbers, SWIFT codes, IBAN formats, invoice templates with amounts','Intellectual property: source code patterns, CAD file signatures, proprietary document fingerprints','Keywords: classification labels ("CONFIDENTIAL", "RESTRICTED", "SECRET", "COMPANY PRIVATE")','Actions by policy: block silently / notify sender / quarantine for manager approval / allow with audit log'],
+    tags:['PII detection','Financial data','IP classification','Regex + ML','Manager approval workflow','Outbound only']},
+  tls:{zone:'Zone 2 — Email Security Gateway',title:'Encryption / TLS',sub:'TLS enforcement · S/MIME · PGP for message confidentiality',
+    desc:'Email encryption operates at two levels: transport encryption (TLS) protects messages in transit between servers, while end-to-end encryption (S/MIME or PGP) protects message content from sender to recipient. The gateway can enforce, opportunistic or mandatory TLS with specific partner domains.',
+    points:['Opportunistic TLS: gateway attempts TLS with every sending server; falls back to plain-text only if unavailable','Mandatory TLS: configured for high-value partner domains — message rejected if TLS cannot be established','S/MIME: certificate-based end-to-end encryption integrated with Outlook and Apple Mail; gateway verifies certs','PGP: open-standard end-to-end encryption; gateway can act as key server or verify signatures','TLS 1.3 preferred; TLS 1.0/1.1 deprecated and blocked by default on modern gateway configurations'],
+    tags:['TLS 1.3','Opportunistic TLS','Mandatory TLS','S/MIME','PGP','End-to-end encryption']},
+  policy:{zone:'Zone 2 — Email Security Gateway',title:'Policy Engine',sub:'Aggregates all scan results → final routing decision',
+    desc:'The policy engine is the authoritative decision point for every message. It aggregates results from all preceding scan stages — connection reputation, authentication, AV, ATP, URL, NLP, and DLP — into a composite risk score and maps that score to a configured action.',
+    points:['Composite score: each stage contributes a weighted signal — ATP sandbox result carries highest weight','Three primary outcomes: DELIVER (clean), QUARANTINE (suspicious), BLOCK (malicious / policy violation)','Tagging: adds X-Spam-Score, X-Phishing-Verdict headers consumed by Outlook rules and SIEM parser','Subject tagging: adds [EXTERNAL], [PHISHING], [ENCRYPTED-ATTACHMENT] prefixes for user awareness','Exception handling: VIP sender lists, department-specific policies, time-based rules applied at this layer','Policy-as-code: rules stored in version control, peer-reviewed, and tested in staging before production'],
+    tags:['Composite scoring','DELIVER / QUARANTINE / BLOCK','X-header tagging','Policy-as-code','VIP exceptions']},
+  deliver:{zone:'Verdict Engine',title:'Clean — Message Delivered',sub:'Passed all checks · Released to internal mail server',
+    desc:'Messages that pass all security checks are released for delivery to the recipient\'s mail server. Even delivered messages remain protected — all embedded URLs still route through the click-time proxy, and the endpoint EDR monitors for post-delivery compromise.',
+    points:['[EXTERNAL] subject prefix added to all email from outside the organisation for user awareness','X-Gateway-Scanned header confirms message was processed — used by SIEM parsers','All embedded URLs remain rewritten — if threat intel updates post-delivery, the next click will be blocked','Delivery event logged with verdict metadata for SOC baseline monitoring and compliance reporting','Secondary scan: some gateways support post-delivery scanning that can retract emails within a time window'],
+    tags:['Clean verdict','URL still rewritten','Post-delivery retraction','EXTERNAL tag','X-Gateway-Scanned']},
+  quar:{zone:'Verdict Engine',title:'Quarantine — Pending Review',sub:'Suspicious · Held for admin or user review',
+    desc:'Messages that cannot be definitively classified as clean or malicious are held in a quarantine queue. This prevents delivery of potentially harmful content while allowing legitimate messages caught as false positives to be recovered.',
+    points:['Quarantine portal: web-accessible interface for both admins and end users to review their quarantined messages','Users receive a quarantine digest email (daily or weekly) with options to release, block, or report each message','Admins have bulk-action capabilities: release, reclassify, delete, or create allow/block rules from quarantine contents','Default retention: 30 days before auto-deletion. Configurable per policy severity tier','SIEM alert: high-confidence phishing in quarantine triggers immediate SOC alert for investigation'],
+    tags:['Quarantine portal','Digest email','30-day retention','Admin bulk actions','False positive recovery']},
+  block:{zone:'Verdict Engine',title:'Blocked — Message Rejected',sub:'Confirmed malicious · SMTP reject or silent drop',
+    desc:'Messages classified as confirmed malicious are either rejected at the SMTP level (a 550 rejection code returned to the sending server) or silently dropped. Silent drop is preferred for known malicious senders to avoid revealing detection capabilities.',
+    points:['SMTP 550: "5.7.1 Message rejected for policy reasons" returned for policy-based blocks','Silent drop: no response sent for confirmed phishing/malware — attacker gets no signal that detection occurred','Sender IP and attachment hash added to local block list — future similar messages blocked at connection stage','Block event logged with full metadata and immediately forwarded to SIEM for threat intel correlation','User notification optional: for confirmed phishing, users may receive awareness notification that an attack was blocked'],
+    tags:['SMTP 550','Silent drop','Block list update','SIEM forwarding','User awareness notification']},
+  mailsrv:{zone:'Zone 4 — Internal Delivery',title:'Mail Server (MTA)',sub:'Exchange Online / M365 / Google Workspace',
+    desc:'The organisation\'s mail platform receives clean, pre-scanned email from the gateway and delivers it to recipient mailboxes. In cloud deployments, native security features provide a second layer of defence, but the email gateway remains the primary control.',
+    points:['Microsoft 365: native Defender for Office 365 provides Safe Attachments and Safe Links as a secondary layer','Google Workspace Enterprise: AI-driven spam and phishing filters add a second detection layer behind the gateway','On-premises Exchange: entirely dependent on the email gateway — no backup detection layer is available','Exchange Online Protection (EOP) can be configured to honour gateway verdicts via X-header rules','Inbound connector locks M365 to accept email only from the gateway IP — bypassing the gateway is impossible'],
+    tags:['Exchange Online','M365','Google Workspace','Defender for O365','Inbound connector']},
+  inbox:{zone:'Zone 4 — Internal Delivery',title:'End User Mailbox',sub:'Final delivery — last human layer of defence',
+    desc:'The user inbox is the final delivery destination and the last human layer of defence. Despite all technical controls, user awareness remains critical — a sophisticated social engineering attack may pass all automated checks and rely on the user making a correct judgement.',
+    points:['Outlook Safe Links: provides an additional click-time check layer on top of gateway URL rewriting for M365 tenants','Report Phishing button: direct integration allows users to flag missed threats back to the gateway for tuning','User awareness training: regular simulated phishing exercises measure and improve user detection accuracy','MFA enforcement on email accounts: stolen credentials alone are insufficient to access email without the second factor','Conditional access: unmanaged or non-compliant devices may be restricted to browser-only email access'],
+    tags:['Safe Links','MFA','Report Phishing','User awareness training','Conditional access']},
+  siem:{zone:'Zone 4 — Internal Delivery',title:'SIEM / Log Platform',sub:'Correlation · Detection · Audit trail · Alerting',
+    desc:'The SIEM ingests telemetry from every layer of the email security stack and correlates events across sources to detect multi-stage attacks that no single control could identify. Email gateway logs are one of the most valuable SIEM data sources.',
+    points:['Ingests all log types from the email gateway in real time via Syslog, CEF, or JSON API','Correlation rule: "Phishing email delivered AND URL clicked AND EDR alert on same endpoint within 10 minutes"','Dashboard KPIs: blocked emails per hour, phishing campaign trends, DLP violations by department','Threat hunting: analysts query historical email logs to find patterns matching emerging IOCs or attacker TTPs','Integration with SOAR: high-confidence alerts automatically trigger response playbooks without analyst intervention'],
+    tags:['Syslog / CEF / JSON','Correlation rules','SOAR integration','Threat hunting','Microsoft Sentinel','Splunk','QRadar']},
+};
+
+let fcActive = null;
+function showFlowComp(id) {
+  if (!FC_DATA[id]) return;
+  const d = FC_DATA[id];
+  if (fcActive) { const prev = document.getElementById('fc-' + fcActive); if (prev) prev.classList.remove('fc-active'); }
+  fcActive = id;
+  // find matching SVG group by data key
+  const groupMap = {internet:'fc-internet',legit:'fc-legit',threats:'fc-threats',malware_src:'fc-malware',
+    conn:'fc-conn',auth_check:'fc-auth',spam:'fc-spam',url:'fc-url',av:'fc-av',atp:'fc-atp',
+    dlp:'fc-dlp',tls:'fc-tls',policy:'fc-policy',deliver:'fc-clean',quar:'fc-quar',block:'fc-block',
+    mailsrv:'fc-mailsrv',inbox:'fc-inbox',siem:'fc-siem'};
+  const gid = groupMap[id]; if (gid) { const el = document.getElementById(gid); if (el) el.classList.add('fc-active'); }
+  const tags = d.tags ? '<div class="dp-tags">' + d.tags.map(t=>`<span class="dp-tag">${t}</span>`).join('') + '</div>' : '';
+  const panel = document.getElementById('fc-detail');
+  panel.innerHTML = `<div class="dp-zone">${d.zone}</div><div class="dp-title">${d.title}</div><div class="dp-sub">${d.sub}</div><div class="dp-desc">${d.desc}</div><ul class="dp-points">${d.points.map(p=>`<li>${p}</li>`).join('')}</ul>${tags}`;
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+</script>
 
 <hr class="divider">
 
